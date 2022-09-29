@@ -227,6 +227,7 @@ export default {
           "--theme_userView_btn_bg_hover": "rgb(48,54,61)",
           "--theme_search_line_color": "#838282",
           "--theme_search_data_title_hover_bg": "rgb(54,65,81)",
+          "--theme_search_view_bg_color":"rgb(37,45,56)"
         },
         light: {
           "--theme_outer_bg_color": "rgb(246, 246, 246)",
@@ -243,6 +244,7 @@ export default {
           "--theme_userView_btn_bg_hover": "rgb(255, 255, 255)",
           "--theme_search_line_color": "#dee2e6",
           "--theme_search_data_title_hover_bg": "rgb(248,249,250)",
+          "--theme_search_view_bg_color":"white"
         },
       };
       if (this.lightTheme) {
@@ -293,6 +295,7 @@ export default {
           "--theme_userView_btn_bg_hover": "rgb(255, 255, 255)",
           "--theme_search_line_color": "#dee2e6",
           "--theme_search_data_title_hover_bg": "rgb(248,249,250)",
+          "--theme_search_view_bg_color":"white"
         };
         for (const item in defaultTheme) {
           document.documentElement.style.setProperty(item, defaultTheme[item]);
@@ -760,7 +763,7 @@ export default {
   .search-container {
     width: 50%;
     min-height: 270px;
-    background-color: var(--theme_inner_bg_color);
+    background-color: var(--theme_search_view_bg_color);
     position: fixed;
     z-index: 1032;
     border: 0;

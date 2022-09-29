@@ -272,20 +272,22 @@ export default {
     },
   },
   mounted() {
-    this.myTheme = document.documentElement.style.getPropertyValue(
-      "--theme_inner_bg_color"
-    );
-    document.documentElement.style.setProperty(
-      "--theme_inner_bg_color",
-      "white"
-    );
+    //可能会有样式问题
+    // this.myTheme = document.documentElement.style.getPropertyValue(
+    //   "--theme_inner_bg_color"
+    // );
+    // document.documentElement.style.setProperty(
+    //   "--theme_inner_bg_color",
+    //   "white"
+    // );
     this.myImgUpload();
   },
   beforeDestroy() {
-    document.documentElement.style.setProperty(
-      "--theme_inner_bg_color",
-      this.myTheme
-    );
+    //可能会有样式问题
+    // document.documentElement.style.setProperty(
+    //   "--theme_inner_bg_color",
+    //   this.myTheme
+    // );
   },
 };
 </script>
