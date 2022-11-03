@@ -2,36 +2,41 @@
   <div>
     <header class="header container-fluid">
       <a class="header_logo" @click="toHome">
-        <strong>Kumicho Forum </strong>
+        <strong>Kumicho Forum</strong>
       </a>
       <ul class="navbar">
         <li class="nav_item" @click="toHome">
-          <a> 首页 </a>
+          <a>首页</a>
         </li>
         <li class="nav_item" @click="toMessageView">
-          <a> 消息 </a>
+          <a>消息</a>
         </li>
         <li class="nav_item" @click="toTrendsView">
-          <a> 动态 </a>
+          <a>动态</a>
         </li>
         <li class="nav_item" @click="toCollectionView">
-          <a> 收藏 </a>
+          <a>收藏</a>
         </li>
         <li class="nav_item" @click="toCreateArticle">
-          <a> 创作中心 </a>
+          <a>创作中心</a>
         </li>
         <li class="nav_item" @click="showSearchView">
-          <a> 搜索 </a>
+          <a>
+            <i class="el-icon-search"></i>
+          </a>
         </li>
         <li class="nav_item" @click="changeTheme">
-          <a> 切换 </a>
+          <a @mouseenter="mouseIn" @mouseleave="mouseOut">
+            <i v-if="lightTheme"  ref="themeSunIcon" class="el-icon-sunny"></i>
+            <i v-if="darkTheme"  ref="themeMoonIcon" class="el-icon-moon"></i>
+          </a>
         </li>
         <li v-if="!userInfo" class="nav_item" @click="toLogin">
-          <a> 登录/注册 </a>
+          <a>登录/注册</a>
         </li>
         <li v-else class="nav_item" @click="showSelect">
           <a>
-            <img :src="userInfo.image" alt="" />
+            <img :src="userInfo.image" alt />
             <div class="select-button"></div>
           </a>
         </li>
@@ -46,28 +51,33 @@
       <div class="my-navbar-container">
         <ul class="my-vertical-navbar">
           <li class="nav_item">
-            <a> 首页 </a>
+            <a>首页</a>
           </li>
           <li class="nav_item">
-            <a> 消息 </a>
+            <a>消息</a>
           </li>
           <li class="nav_item">
-            <a> 动态 </a>
+            <a>动态</a>
           </li>
           <li class="nav_item">
-            <a> 收藏 </a>
+            <a>收藏</a>
           </li>
           <li class="nav_item">
-            <a> 创作中心 </a>
+            <a>创作中心</a>
           </li>
           <li class="nav_item">
-            <a> 搜索 </a>
+            <a>搜索</a>
           </li>
           <li class="nav_item" @click="changeTheme">
-            <a> 切换 </a>
+            <a>切换</a>
           </li>
-          <li class="nav_item">
-            <a> 登录/注册 </a>
+          <li v-if="!userInfo" @click="toLogin" class="nav_item">
+            <a>登录/注册</a>
+          </li>
+          <li v-else class="nav_item" @click="showSelect">
+            <a>
+              <img :src="userInfo.image" alt />
+            </a>
           </li>
         </ul>
       </div>
@@ -83,16 +93,30 @@
         </div>
         <div class="line-one"></div>
         <ul class="bottom-ul-one">
-          <li @click="toUserView"><span>我的主页</span></li>
-          <li @click="toUserTrendsView"><span>我的动态</span></li>
-          <li @click="toUserConcernView"><span>我的关注</span></li>
-          <li @click="toUserFansView"><span>我的粉丝</span></li>
-          <li @click="toUserInfoView"><span>个人资料</span></li>
-          <li @click="toSettingView"><span>账号设置</span></li>
+          <li @click="toUserView">
+            <span>我的主页</span>
+          </li>
+          <li @click="toUserTrendsView">
+            <span>我的动态</span>
+          </li>
+          <li @click="toUserConcernView">
+            <span>我的关注</span>
+          </li>
+          <li @click="toUserFansView">
+            <span>我的粉丝</span>
+          </li>
+          <li @click="toUserInfoView">
+            <span>个人资料</span>
+          </li>
+          <li @click="toSettingView">
+            <span>账号设置</span>
+          </li>
         </ul>
         <div class="line-two"></div>
         <ul class="bottom-ul-two">
-          <li @click="logout"><span>退出登录</span></li>
+          <li @click="logout">
+            <span>退出登录</span>
+          </li>
         </ul>
       </div>
     </div>
@@ -101,15 +125,13 @@
       <div v-if="isSearchContainerShow" class="search-container">
         <div class="title">
           Search
-          <i
-            class="search-container-icon el-icon-close"
-            @click="closeSearchView"
-          ></i>
+          <i class="search-container-icon el-icon-close" @click="closeSearchView"></i>
         </div>
         <div class="title-line"></div>
         <div class="search-input">
           <div class="search-input-title">keyword</div>
           <input
+            ref="searchInput"
             type="text"
             @focus="changeInputTitleColor"
             @blur="removeInputTitleColor"
@@ -119,16 +141,12 @@
           <div class="input-line"></div>
         </div>
         <div class="search-data-view">
-          <div class="data-item" v-for="(article, index) in searchArticleArr">
-            <div class="data-title">
+          <div class="data-item" v-for="(article, index) in searchArticleArr" :key="article_id" >
+            <div class="data-title" @click="toDetailArticleView(article._id)" >
               <div class="side-bar"></div>
-              <div class="title-content">
-                {{ article.title }}
-              </div>
+              <div class="title-content">{{ article.title }}</div>
             </div>
-            <div class="data-description">
-              {{ article.description }}
-            </div>
+            <div class="data-description">{{ article.description }}</div>
           </div>
         </div>
       </div>
@@ -149,7 +167,7 @@ export default {
       isSearchContainerShow: false,
       inputInfo: "",
       searchArticleArr: [],
-      isShowSelect: false,
+      isShowSelect: false
     };
   },
   computed: {
@@ -159,7 +177,7 @@ export default {
       } else {
         return null;
       }
-    },
+    }
   },
   methods: {
     //ok
@@ -227,7 +245,7 @@ export default {
           "--theme_userView_btn_bg_hover": "rgb(48,54,61)",
           "--theme_search_line_color": "#838282",
           "--theme_search_data_title_hover_bg": "rgb(54,65,81)",
-          "--theme_search_view_bg_color":"rgb(37,45,56)"
+          "--theme_search_view_bg_color": "rgb(37,45,56)"
         },
         light: {
           "--theme_outer_bg_color": "rgb(246, 246, 246)",
@@ -244,8 +262,8 @@ export default {
           "--theme_userView_btn_bg_hover": "rgb(255, 255, 255)",
           "--theme_search_line_color": "#dee2e6",
           "--theme_search_data_title_hover_bg": "rgb(248,249,250)",
-          "--theme_search_view_bg_color":"white"
-        },
+          "--theme_search_view_bg_color": "white"
+        }
       };
       if (this.lightTheme) {
         for (const item in theme.dark) {
@@ -295,7 +313,7 @@ export default {
           "--theme_userView_btn_bg_hover": "rgb(255, 255, 255)",
           "--theme_search_line_color": "#dee2e6",
           "--theme_search_data_title_hover_bg": "rgb(248,249,250)",
-          "--theme_search_view_bg_color":"white"
+          "--theme_search_view_bg_color": "white"
         };
         for (const item in defaultTheme) {
           document.documentElement.style.setProperty(item, defaultTheme[item]);
@@ -321,8 +339,8 @@ export default {
       this.$router.push({
         name: routerName,
         params: {
-          userId: this.userInfo._id,
-        },
+          userId: this.userInfo._id
+        }
       });
     },
     //跳转用户信息页面
@@ -352,17 +370,16 @@ export default {
     toSettingView() {
       this.closeSelect();
       this.$router.push({
-        name: "userSetting",
+        name: "userSetting"
       });
     },
     //退出登录
     logout() {
       localStorage.removeItem("kumicho_refresh_token");
       localStorage.removeItem("kumicho_access_token");
-      this.closeSelect()
-      this.$router.push('/')
-      location.reload()
-      
+      this.closeSelect();
+      this.$router.push("/");
+      location.reload();
     },
     //显示下拉框
     showSelect() {
@@ -398,6 +415,9 @@ export default {
       searchBackground.style.height = hei + "px";
       searchBackground.classList.add("background-container-change");
       this.isSearchContainerShow = true;
+      this.$nextTick(() => {
+      this.$refs.searchInput.focus()
+    })
     },
     closeSearchView() {
       const searchBackground = document.querySelector(".background-container");
@@ -422,7 +442,7 @@ export default {
     //输入框添加防抖函数（以下是函数的不简写方式）
     inputValueChange: _.debounce(
       //注意箭头函数this指向问题
-      async function () {
+      async function() {
         if (this.inputInfo.trim() !== "") {
           const ret = await this.$API.article.searchArticle(this.inputInfo);
           if (ret.code === 200) {
@@ -432,6 +452,33 @@ export default {
       },
       1500
     ),
+    mouseIn(){
+      if(this.darkTheme){
+        this.$refs.themeMoonIcon.classList.remove('el-icon-moon')
+        this.$refs.themeMoonIcon.classList.add('el-icon-sunny')
+      }else{ 
+        this.$refs.themeSunIcon.classList.remove('el-icon-sunny')
+        this.$refs.themeSunIcon.classList.add('el-icon-moon')
+      }
+    },
+    mouseOut(){
+      if(this.darkTheme){
+        this.$refs.themeMoonIcon.classList.add('el-icon-moon')
+        this.$refs.themeMoonIcon.classList.remove('el-icon-sunny')
+      }else{
+        this.$refs.themeSunIcon.classList.add('el-icon-sunny')
+        this.$refs.themeSunIcon.classList.remove('el-icon-moon')
+      }
+    },
+    toDetailArticleView(articleId){
+      this.$router.push({
+        name: "detailArticle",
+        params: {
+          articleId,
+        },
+      });
+      this.closeSearchView()
+    }
   },
   mounted() {
     //添加防抖函数
@@ -450,7 +497,7 @@ export default {
     this.$bus.$on("login", () => {
       this.$store.dispatch("getUserInfo");
     });
-  },
+  }
 };
 </script>
 
@@ -495,6 +542,10 @@ export default {
         img {
           width: 30px;
           border-radius: 50%;
+        }
+        i {
+          font-size: 16px;
+          font-weight: 600;
         }
         .select-button {
           width: 0px;
@@ -582,6 +633,10 @@ export default {
           height: 100%;
           font-weight: 600;
           transition: 0.5s;
+          img {
+            width: 30px;
+            border-radius: 50%;
+          }
         }
       }
     }

@@ -133,10 +133,12 @@ export default {
               if (res.code === 200) {
                 this.userInfo.password=''
                 this.$router.push('/login');
-                this.isLogin=true
+                // this.isLogin=true
+                let userCollection = {}
+                userCollection.user=res.data._id
+                await this.$API.collection.createDefault(userCollection)
               }
             } catch (error) {
-              console.log(error)
               this.$message({
                 message:error[0].msg,
                 type: "error",
@@ -176,7 +178,7 @@ export default {
   background-color: var(--theme_outer_bg_color);
   .login-container {
     transition: inherit;
-    width: 500px;
+    width: 495px;
     height: 350px;
     background-color: var(--theme_inner_bg_color);
     position: absolute;

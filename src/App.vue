@@ -15,13 +15,11 @@ export default {
   },
   components: {
     Header,
-    Footer,
+    Footer
   },
   computed: {},
   methods: {},
-  mounted() {
-    
-  },
+  mounted() {}
 };
 </script>
 <style lang="less">
@@ -42,7 +40,7 @@ export default {
 /* 滚动条整体部分 */
 ::-webkit-scrollbar {
   width: 5px;
-  height: 8px;
+  height: 5px;
 }
 /* 外层轨道 */
 ::-webkit-scrollbar-track {
@@ -101,4 +99,5 @@ export default {
 .outer::after {
   clear: both;
 }
+
 </style>

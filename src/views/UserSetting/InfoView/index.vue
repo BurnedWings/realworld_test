@@ -87,12 +87,13 @@ export default {
   methods: {
     async updateProfile() {
       const ret = await this.$API.user.updateUserInfo({
-        username: this.userInfo.username,
-        bio: this.userInfo.bio,
+        username: this.userInfo.username.trim(),
+        bio: this.userInfo.bio.trim(),
         gender: this.userInfo.gender,
         birthday: this.userInfo.birthday,
       });
       if (ret.code === 200) {
+        this.$store.dispatch("getUserInfo");
         this.$message({
           type: "success",
           message: "修改成功",
@@ -101,7 +102,6 @@ export default {
     },
     showEditView() {
       document.querySelector('.update-input').click()
-      
     },
     //文件上传成功的回调
     loadingImg(event){

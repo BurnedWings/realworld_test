@@ -22,28 +22,36 @@
         class="demo-ruleForm article-form"
       >
         <el-form-item label="标题" prop="title">
-          <el-input
-            v-model="articleMessage.title"
-            autocomplete="off"
-            clearable
-          ></el-input>
+          <el-input v-model="articleMessage.title" autocomplete="off" clearable></el-input>
         </el-form-item>
         <el-form-item label="文章摘要" prop="description">
           <el-input
             type="textarea"
             :rows="3"
+            maxlength="120"
+            show-word-limit
             v-model="articleMessage.description"
             autocomplete="off"
           ></el-input>
         </el-form-item>
-        <el-form-item label="分类" prop="category">
-          <el-select
-            v-model="articleMessage.category"
-            placeholder="请选择分类"
-            clearable
+        <el-form-item label="封面" prop="cover">
+          <el-upload
+            action
+            ref="upload"
+            :limit="1"
+            list-type="picture-card"
+            :on-remove="handleRemove"
+            :http-request="uploadFile"
           >
+            <i class="el-icon-plus"></i>
+          </el-upload>
+        </el-form-item>
+        <el-form-item label="分类" prop="category">
+          <el-select v-model="articleMessage.category" placeholder="请选择分类" clearable>
             <el-option label="分类一" value="shanghai"></el-option>
             <el-option label="分类二" value="beijing"></el-option>
+            <el-option label="分类二" value="taiyuan"></el-option>
+            <el-option label="分类二" value="jiangsu"></el-option>
           </el-select>
         </el-form-item>
         <el-form-item label="标签" prop="tagList" ref="tagItem">
@@ -54,9 +62,7 @@
             closable
             :disable-transitions="false"
             @close="closeTagItem(index)"
-          >
-            {{ tag }}
-          </el-tag>
+          >{{ tag }}</el-tag>
           <el-input
             class="input-new-tag my-tag-input"
             v-if="isTagInputShow"
@@ -66,20 +72,16 @@
             @keyup.enter.native="handleInputConfirm"
             @blur="handleInputConfirm"
             @input="strCode"
-          >
-          </el-input>
+          ></el-input>
           <el-button
             v-if="isTagButtonShow"
             class="button-new-tag"
             size="small"
             @click="changeInput"
-            >+添加</el-button
-          >
+          >+添加</el-button>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="submitForm('articleMessage')"
-            >提交</el-button
-          >
+          <el-button type="primary" @click="submitForm('articleMessage')">提交</el-button>
           <el-button @click="resetForm('articleMessage')">重置</el-button>
         </el-form-item>
       </el-form>
@@ -93,7 +95,7 @@ import { Editor } from "@toast-ui/vue-editor";
 export default {
   name: "CreateArticle",
   components: {
-    Editor,
+    Editor
   },
   data() {
     var validateTitle = (rule, value, callback) => {
@@ -102,6 +104,9 @@ export default {
       } else {
         callback();
       }
+    };
+    var validateCover = (rule, value, callback) => {
+      callback();
     };
     var validateDescription = (rule, value, callback) => {
       if (value === "") {
@@ -131,47 +136,64 @@ export default {
       isTagInputShow: false,
       isTagButtonShow: true,
       editorOptions: {
-        hideModeSwitch: false,
+        hideModeSwitch: false
       },
       articleMessage: {
         title: "",
         description: "",
         category: "",
         body: "",
-        tagList: [],
+        tagList: []
       },
       rules: {
         title: [{ validator: validateTitle, trigger: "blur" }],
         description: [{ validator: validateDescription, trigger: "blur" }],
         category: [{ validator: validateCategory, trigger: "change" }],
-        tagList: [{ validator: validateTagList, trigger: "blur" }],
+        tagList: [{ validator: validateTagList, trigger: "blur" }]
       },
-      myTheme: "",
+      articleId: null,
+      imageUrl: null
     };
   },
-  computed: {
-    messageHeight() {},
-  },
+  computed: {},
+
   methods: {
     getHtml() {
+      // if(this.$refs.toastuiEditor.invoke("isMarkdownMode")){
+      //  return this.editorText = this.$refs.toastuiEditor.invoke("getMarkdown");
+      // }
       this.editorText = this.$refs.toastuiEditor.invoke("getHTML");
     },
     submitForm(formName) {
       if (this.editorText === "") {
         return this.$message({
           type: "warning",
-          message: "还没有添加文章内容哦！",
+          message: "还没有添加文章内容哦！"
         });
       }
-      this.$refs[formName].validate(async (valid) => {
+      this.$refs[formName].validate(async valid => {
         if (valid) {
           //验证成功
+          if (this.articleId) {
+            this.articleMessage.body = this.editorText;
+            const ret = await this.$API.article.updateArticle({
+              articleId: this.articleId,
+              articleBody: this.articleMessage
+            });
+            if (ret.code === 200) {
+              this.$refs[formName].resetFields();
+              this.$refs.toastuiEditor.invoke("reset");
+            }
+            return;
+          }
           this.articleMessage.body = this.editorText;
+          this.articleMessage.cover = this.imageUrl;
           const ret = await this.$API.article.createArticle(
             this.articleMessage
           );
           if (ret.code === 200) {
             this.$refs[formName].resetFields();
+            this.$refs.upload.clearFiles();
             this.$refs.toastuiEditor.invoke("reset");
           }
         } else {
@@ -183,6 +205,7 @@ export default {
     },
     resetForm(formName) {
       this.$refs[formName].resetFields();
+      this.$refs.upload.clearFiles();
       this.$refs.toastuiEditor.invoke("reset");
       this.editorText = "";
     },
@@ -193,17 +216,17 @@ export default {
         if (this.tagInput.trim() === "") {
           return this.$message({
             type: "error",
-            message: "标签值不能为空",
+            message: "标签值不能为空"
           });
         }
-        let result = this.articleMessage.tagList.every((item) => {
+        let result = this.articleMessage.tagList.every(item => {
           return item != this.tagInput;
         });
         if (!result) {
           this.tagInput = "";
           return this.$message({
             type: "error",
-            message: "此标签已存在",
+            message: "此标签已存在"
           });
         }
         this.articleMessage.tagList.push(this.tagInput);
@@ -217,7 +240,7 @@ export default {
       if (this.articleMessage.tagList.length > 2) {
         return this.$message({
           type: "error",
-          message: "最多设置三个标签",
+          message: "最多设置三个标签"
         });
       }
       this.isTagInputShow = true;
@@ -247,7 +270,7 @@ export default {
     },
     strCode() {
       //获取字符串的字节数
-      let str = this.tagInput
+      let str = this.tagInput;
       var count = 0; //初始化字节数递加变量并获取字符串参数的字符个数
       if (str) {
         //如果存在字符串，则执行
@@ -261,46 +284,94 @@ export default {
             count++; //否则递加一次
           }
         }
-        if(count>10){
-          this.tagInput=str.slice(0,str.length-1)
+        if (count > 10) {
+          this.tagInput = str.slice(0, str.length - 1);
           this.$message({
             type: "error",
-            message: "内容超过最大长度",
+            message: "内容超过最大长度"
           });
         }
       }
     },
+    async getDetailArticle(articleId) {
+      const ret = await this.$API.article.getDetailArticle(articleId);
+      if (ret.code === 200) {
+        this.editorText = this.$refs.toastuiEditor.invoke(
+          "setHTML",
+          ret.data.body
+        );
+        for (const key in this.articleMessage) {
+          this.articleMessage[key] = ret.data[key];
+        }
+      }
+    },
+    async uploadFile(params) {
+      const _file = params.file;
+      // 通过 FormData 对象上传文件
+      var formData = new FormData();
+      formData.append("file", _file);
+      const ret = await this.$API.article.handleCover(formData);
+      if (ret.code === 200) {
+        this.imageUrl = ret.url;
+      }
+    },
+    handleRemove() {
+      this.$message({
+        type: "success",
+        message: "移除成功"
+      });
+      this.imageUrl = null;
+    }
   },
   mounted() {
-    //可能会有样式问题
-    // this.myTheme = document.documentElement.style.getPropertyValue(
-    //   "--theme_inner_bg_color"
-    // );
-    // document.documentElement.style.setProperty(
-    //   "--theme_inner_bg_color",
-    //   "white"
-    // );
     this.myImgUpload();
+    if (this.$route.params.articleId) {
+      this.articleId = this.$route.params.articleId;
+      this.getDetailArticle(this.$route.params.articleId);
+    }
+    const selectNode = document.querySelector(".el-select-dropdown__wrap");
+    selectNode.style.marginBottom = -10 + "px";
   },
-  beforeDestroy() {
-    //可能会有样式问题
-    // document.documentElement.style.setProperty(
-    //   "--theme_inner_bg_color",
-    //   this.myTheme
-    // );
-  },
+  beforeDestroy() {}
 };
 </script>
 
+<style>
+.avatar-uploader .el-upload {
+  border: 1px dashed #d9d9d9;
+  border-radius: 6px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+.avatar-uploader .el-upload:hover {
+  border-color: #409eff;
+}
+.avatar-uploader-icon {
+  font-size: 28px;
+  color: #8c939d;
+  width: 178px;
+  height: 178px;
+  line-height: 178px;
+  text-align: center;
+}
+.avatar {
+  width: 178px;
+  height: 178px;
+  display: block;
+}
+</style>
 <style lang="less" scoped >
 :deep(.el-textarea__inner) {
   max-height: 150px;
 }
+
 .my-create-view {
   transition: all 0.5s;
   width: 100%;
-  height: 1200px;
+  height: 1300px;
   background-color: var(--theme_outer_bg_color);
+
   .edit-view {
     transition: inherit;
     background-color: white;

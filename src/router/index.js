@@ -37,8 +37,15 @@ const routes = [
     // route level code-splitting
     // this generates a separate chunk (about.[hash].js) for this route
     // which is lazy-loaded when the route is visited.
+    component: () => import(/* webpackChunkName: "about" */ '../views/CreateArticle')
+  },
+  {
+    path: '/editArticle/:articleId',
+    name: 'editArticle',
+    // route level code-splitting
+    // this generates a separate chunk (about.[hash].js) for this route
+    // which is lazy-loaded when the route is visited.
     component: () => import(/* webpackChunkName: "about" */ '../views/CreateArticle'),
-    meta:{isLogin:false}
   },
   {
     path: '/detailArticle/:articleId',
@@ -136,7 +143,7 @@ const routes = [
         component: () => import(/* webpackChunkName: "about" */ '../views/UserSetting/AboutView')
       },
     ]
-  }
+  },
 ]
 
 const router = new VueRouter({

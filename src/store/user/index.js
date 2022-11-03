@@ -25,6 +25,7 @@ export default {
     mutations: {
         GETUSERINFO(state, userInfo) {
             state.userInfo = userInfo
+            state.userId = userInfo._id
         },
         GETONEUSERINFO(state,oneUserInfo){
             state.oneUserInfo = oneUserInfo
@@ -32,9 +33,10 @@ export default {
     },
     state: {
         userInfo: {},
-        oneUserInfo:{}
+        oneUserInfo:{},
+        userId:''
     },
     getters: {
-
+        
     }
 }

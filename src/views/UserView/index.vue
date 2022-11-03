@@ -114,6 +114,7 @@ export default {
   beforeDestroy() {
     this.clearHeaderStyle();
     this.$store.state.user.oneUserInfo={}
+    window.removeEventListener("scroll",this.changeNav)
   },
 };
 </script>

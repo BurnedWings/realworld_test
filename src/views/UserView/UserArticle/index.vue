@@ -1,33 +1,45 @@
 <template>
-  <div class="user-article">
-    <div v-for="(article, index) in articles" class="article-item">
+  <div>
+    <div class="user-article">
+    <div v-for="(article, index) in articles" :key="article._id" class="article-item">
       <div @click="showDetailArticle(article._id)">
         <div class="title">{{ article.title }}</div>
-        <div class="description">
-          {{ article.description }}
+        <div v-if="isLoginUser" class="article-edit">
+          <el-button type="primary" size="mini" @click.stop="editArticle(article._id)">编辑</el-button>
+          <el-button type="danger" size="mini" @click.stop="toDeleteArticle">删除</el-button>
         </div>
+        <div class="description">{{ article.description }}</div>
       </div>
       <div class="message">
         <div class="publish-time">
           <i class="el-icon-time"></i>
-          发布于 &nbsp {{ article.createdAt }}
+          发布于 &nbsp; {{$dayjs(article.createdAt).format("YYYY/MM/DD") }}
         </div>
         <div class="message-item">
-          <i class="el-icon-mouse"></i>
-          123热度
+          <i class="iconfont icon-dianji"></i>
+          {{article.clicksCount}}热度
         </div>
         <div class="message-item">
-          <i class="el-icon-chat-dot-square"></i>
-          123讨论
+          <i class="iconfont icon-taolun"></i>
+          {{article.commentsCount}}讨论
         </div>
         <div class="message-item">
-          <i class="el-icon-star-off"></i>
-          123收藏
+          <i class="iconfont icon-dianzan"></i>
+          {{article.favoritesCount}}点赞
         </div>
       </div>
       <div class="line"></div>
+      <el-dialog title="温馨提示" :modal="false":show-close="false" :visible.sync="dialogVisible" width="30%" :before-close="handleClose">
+      <span>你确定要删除嘛?</span>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="dialogVisible = false">取 消</el-button>
+        <el-button type="danger" @click="deleteOneArticle(article._id)">删 除</el-button>
+      </span>
+    </el-dialog>
     </div>
   </div>
+  </div>
+  
 </template>
 
 <script>
@@ -39,16 +51,21 @@ export default {
   data() {
     return {
       articles: "",
+      dialogVisible: false
     };
+  },
+  watch: {
+    $route(to, from) {
+      if (this.$route.params.userId) {
+        this.getArticles()
+      }
+    }
   },
   methods: {
     async getArticles() {
       try {
         const ret = await this.$API.article.getArticlesOfOneUser(this.userId);
         if (ret.code === 200) {
-          ret.articles.forEach((item) => {
-            item.createdAt = dayjs(item.createdAt).format("YYYY/MM/DD");
-          });
           this.articles = ret.articles;
         }
       } catch (error) {}
@@ -57,31 +74,65 @@ export default {
       this.$router.push({
         name: "detailArticle",
         params: {
-          articleId,
-        },
+          articleId
+        }
       });
     },
+    editArticle(articleId) {
+      this.$router.push({
+        name: "editArticle",
+        params: {
+          articleId
+        }
+      });
+    },
+    toDeleteArticle() {
+      this.dialogVisible = true;
+    },
+    handleClose(done) {
+      done()
+    },
+    async deleteOneArticle(articleId){
+      this.dialogVisible = false
+      const ret = await this.$API.article.deleteArticle(articleId)
+      if(ret.code===200){
+        this.getArticles()
+        this.$message({
+          type:'success',
+          message:'删除成功'
+        })
+      }
+    }
   },
   computed: {
     userId() {
       return this.$route.params.userId;
     },
+    isLoginUser() {
+      return this.$route.params.userId === this.$store.state.user.userInfo._id;
+    }
   },
   mounted() {
     this.getArticles();
-  },
+  }
 };
 </script>
 
-<style lang="less">
+<style lang="less" scoped>
 .user-article {
   .article-item {
     margin-top: 30px;
+    position: relative;
     .title {
       margin-bottom: 10px;
       font-weight: 600;
       font-size: 16px;
       cursor: pointer;
+    }
+    .article-edit {
+      position: absolute;
+      right: 0;
+      top: 0px;
     }
     .description {
       margin-bottom: 10px;
