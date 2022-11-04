@@ -13,11 +13,12 @@
         <div class="author-message">
           <span @click="toUserView" class="author-name">{{authorInfo.username}}</span>
           <br />
-          <span class="author-fans">粉丝:&nbsp;&nbsp;1231231</span>
+          <span class="author-fans">粉丝:&nbsp;&nbsp;{{authorInfo.fansCount}}</span>
           <span>文章:&nbsp;&nbsp;{{authorInfo.articleCount}}</span>
         </div>
         <div class="concern-btn">
-          <div class="concern-button">关注</div>
+          <div v-if="isConcern===false" @click="concernOneUser" class="concern-button">关注</div>
+          <div v-if="isConcern" @click="concernOneUser" class="concern-button">已关注</div>
         </div>
       </div>
       <div class="title-line"></div>
@@ -89,7 +90,14 @@
               </div>
               <div class="reply" @click="showReplyInput(myIndex,comment.user,null,comment._id)">回复</div>
               <div class="comment-edit">
-                <i @click="toEditComment(myIndex)" class="el-icon-more"></i>
+                <el-popconfirm
+                  v-if="userId===comment.user._id"
+                  title="你确定要删除评论嘛?"
+                  @confirm="deleteOwnComment(comment._id)"
+                >
+                  <i slot="reference" class="el-icon-delete"></i>
+                </el-popconfirm>
+                <i v-else @click="toEditComment(myIndex)" class="el-icon-more"></i>
                 <div @mouseleave="closeBox(myIndex)" ref="editBox" class="to-edit-comment">
                   <span>加入黑名单</span>
                   <br />
@@ -125,7 +133,22 @@
                     class="reply"
                   >回复</div>
                   <div class="reply-edit">
-                    <i @click="toEditReply(myIndex,index)" class="my-edit-icon el-icon-more"></i>
+                    <el-popconfirm
+                      title="你确定要删除评论嘛?"
+                      class="edit-container"
+                      @confirm="deleteOwnReply(reply._id)"
+                    >
+                      <i
+                        slot="reference"
+                        v-if="userId===reply.user._id"
+                        class="my-edit-icon el-icon-delete"
+                      ></i>
+                    </el-popconfirm>
+                    <i
+                      v-if="userId!=reply.user._id"
+                      @click="toEditReply(myIndex,index)"
+                      class="my-edit-icon el-icon-more"
+                    ></i>
                     <div
                       @mouseleave="closeReplyBox(myIndex,index)"
                       :ref="'replyEditBox'+myIndex+index"
@@ -221,10 +244,15 @@ export default {
       collectionList: null,
       isCollection: false,
       isCollectionArr: null,
-      commentStatusArr: null
+      commentStatusArr: null,
+      isConcern: null
     };
   },
-  computed: {},
+  computed: {
+    userId() {
+      return this.$store.state.user.userInfo._id;
+    }
+  },
   watch: {
     $route(to, from) {
       if (this.$route.params.articleId) {
@@ -240,7 +268,7 @@ export default {
       this.$router.push({
         name: "userView",
         params: {
-          userId:this.authorInfo._id
+          userId: this.authorInfo._id
         }
       });
     },
@@ -251,6 +279,9 @@ export default {
       if (ret.code === 200) {
         this.detailArticle = ret.data;
         this.authorInfo = ret.data.author;
+        if (this.$store.state.user.userInfo._id) {
+          this.getConcernStatus();
+        }
       }
     },
     orderByHot() {
@@ -455,6 +486,63 @@ export default {
         }
       } else {
         this.$router.push("/login");
+      }
+    },
+    //关注
+    async concernOneUser() {
+      const fans = {};
+      fans.ofUser = this.authorInfo._id;
+      const ret = await this.$API.user.concernOneUser(fans);
+      if (ret.code === 200) {
+        this.$message({
+          type: "success",
+          message: "关注成功"
+        });
+        this.getConcernStatus();
+      } else if (ret.code === 202) {
+        this.$message({
+          type: "success",
+          message: "取消关注成功"
+        });
+        this.getConcernStatus();
+      } else if (ret.code === 203) {
+        this.$message({
+          type: "warning",
+          message: ret.message
+        });
+      }
+    },
+    //获取关注状态
+    async getConcernStatus() {
+      const ret = await this.$API.user.getConcernStatus(this.authorInfo._id);
+      if (ret.code === 200) {
+        this.isConcern = ret.isConcern;
+      }
+    },
+    //删除评论
+    async deleteOwnComment(commentId) {
+      const ret = await this.$API.comment.removeComment(
+        commentId,
+        this.detailArticle._id
+      );
+      if (ret.code === 200) {
+        this.getComments();
+        this.$message({
+          type: "success",
+          message: "删除成功"
+        });
+        this.inputAreaIndex = null;
+      }
+    },
+    //删除回复
+    async deleteOwnReply(replyId) {
+      const ret = await this.$API.comment.removeReply(replyId)
+      if(ret.code===200){
+        this.getComments()
+        this.$message({
+          type: "success",
+          message: "删除成功"
+        });
       }
     }
   },
@@ -987,13 +1075,17 @@ export default {
               }
             }
           }
-          .reply-item:hover
-            > .reply-right
-            > .reply-item-bottom
-            > .reply-edit
-            > .my-edit-icon {
-            opacity: 1;
+          // .reply-item:hover
+          //   > .reply-right
+          //   > .reply-item-bottom
+          //   > .reply-edit
+          //   > .my-edit-icon {
+          //   opacity: 1;
+          // }
+          .reply-item:hover :deep(.my-edit-icon) {
+            opacity: 1 !important;
           }
+
           #reply-input-container {
             width: 793px;
           }

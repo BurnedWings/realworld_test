@@ -6,7 +6,7 @@
         <div class="navbar-bottom">
           <transition name="infoTransition">
             <div v-if="isShowUserInfoNav" class="userInfo-container">
-              <img :src="oneUserInfo.image" alt="" />
+              <img :src="oneUserInfo.image" alt />
               <span>{{ oneUserInfo.username }}</span>
             </div>
           </transition>
@@ -23,21 +23,27 @@
       <div class="main-container">
         <div class="left-part">
           <div class="img-container">
-            <img :src="oneUserInfo.image" alt="" />
+            <img :src="oneUserInfo.image" alt />
           </div>
           <div class="easyMessageBox">
             <div
               v-loading="!oneUserInfo.username"
               element-loading-background="rgba(0, 0, 0, 0)"
               class="userName"
-            >
-              {{ oneUserInfo.username }}
-            </div>
+            >{{ oneUserInfo.username }}</div>
             <input
-              v-if="!isLoginUser"
+              @click="concernOneUser"
+              v-if="!isLoginUser&&isConcern===false"
               class="btn btn-block"
               type="submit"
               value="关注"
+            />
+            <input
+              @click="concernOneUser"
+              v-if="!isLoginUser&&isConcern"
+              class="btn btn-block"
+              type="submit"
+              value="已关注"
             />
             <input
               v-if="isLoginUser"
@@ -63,7 +69,8 @@ export default {
   data() {
     return {
       isShowUserInfoNav: false,
-      oneUserInfo:{}
+      oneUserInfo: {},
+      isConcern: null
     };
   },
   methods: {
@@ -84,12 +91,38 @@ export default {
     },
     async getUserViewInfo() {
       try {
-        await this.$store.dispatch("getOneUserInfo",this.userId);
-        this.oneUserInfo=this.$store.state.user.oneUserInfo
+        await this.$store.dispatch("getOneUserInfo", this.userId);
+        this.oneUserInfo = this.$store.state.user.oneUserInfo;
       } catch (error) {}
     },
-    toSettingView(){
-      this.$router.push('/userSetting')
+    toSettingView() {
+      this.$router.push("/userSetting");
+    },
+    //关注
+    async concernOneUser() {
+      const fans = {};
+      fans.ofUser = this.userId;
+      const ret = await this.$API.user.concernOneUser(fans);
+      if (ret.code === 200) {
+        this.$message({
+          type: "success",
+          message: "关注成功"
+        });
+        this.getConcernStatus();
+      } else if (ret.code === 202) {
+        this.$message({
+          type: "success",
+          message: "取消关注成功"
+        });
+        this.getConcernStatus();
+      }
+    },
+    //获取关注状态
+    async getConcernStatus() {
+      const ret = await this.$API.user.getConcernStatus(this.userId);
+      if (ret.code === 200) {
+        this.isConcern = ret.isConcern;
+      }
     }
   },
   computed: {
@@ -98,30 +131,32 @@ export default {
     },
     isLoginUser() {
       return this.$route.params.userId === this.$store.state.user.userInfo._id;
-    },
-    
+    }
   },
-  watch:{
-    isLoginUser(){
-      this.getUserViewInfo()
+  watch: {
+    isLoginUser() {
+      this.getUserViewInfo();
     }
   },
   mounted() {
     this.updateHeaderStyle();
     window.addEventListener("scroll", this.changeNav);
     this.getUserViewInfo();
+    if (this.$store.state.user.userInfo._id) {
+      this.getConcernStatus();
+    }
   },
   beforeDestroy() {
     this.clearHeaderStyle();
-    this.$store.state.user.oneUserInfo={}
-    window.removeEventListener("scroll",this.changeNav)
-  },
+    this.$store.state.user.oneUserInfo = {};
+    window.removeEventListener("scroll", this.changeNav);
+  }
 };
 </script>
 
 <style lang="less">
 .user-view {
-  width: 100%;
+  min-width: 954px;
   height: 100%;
   position: relative;
   .userHeader {

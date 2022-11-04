@@ -37,6 +37,7 @@
       </span>
     </el-dialog>
     </div>
+    <div v-if="hasNoArticle" class="no-article-message" >还没有发布过文章~</div>
   </div>
   </div>
   
@@ -50,8 +51,9 @@ export default {
   name: "UserArticle",
   data() {
     return {
-      articles: "",
-      dialogVisible: false
+      articles: '',
+      dialogVisible: false,
+      hasNoArticle:false
     };
   },
   watch: {
@@ -67,6 +69,9 @@ export default {
         const ret = await this.$API.article.getArticlesOfOneUser(this.userId);
         if (ret.code === 200) {
           this.articles = ret.articles;
+          if(ret.articles.length===0){
+            this.hasNoArticle = true
+          }
         }
       } catch (error) {}
     },
@@ -155,5 +160,8 @@ export default {
       background-color: rgb(131, 130, 130);
     }
   }
+}
+.no-article-message {
+  font-size: 18px;
 }
 </style>

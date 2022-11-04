@@ -146,7 +146,7 @@ export default {
       var clientHeight = this.getClientHeight();
       var scrollHeight = this.getScrollHeight();
       //如果满足公式则，确实到底了
-      if ((scrollHeight - (scrollTop + clientHeight)) / scrollHeight < 0.1) {
+      if ((scrollHeight - (scrollTop + clientHeight)) / scrollHeight < 0.15) {
         if (this.canGetNewArticle) {
           this.canGetNewArticle = false;
           //发送异步请求请求数据，同时携带offset并自增offset

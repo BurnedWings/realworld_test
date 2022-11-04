@@ -14,3 +14,9 @@ export const commentKudos = (commentKudos) => request({url:'/commentKudos/kudos'
 
 //回复点赞
 export const replyKudos = (replyKudos) => request({url:'/replyKudos/kudos',method:'post',data:{replyKudos}})
+
+//删除评论
+export const removeComment = (comment,article) => request({url:'/comments/deleteComment',method:'post',data:{comment,article}})
+
+//删除回复
+export const removeReply = (reply) => request({url:'/replies/deleteReply',method:'post',data:{reply}})
