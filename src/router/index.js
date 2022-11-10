@@ -95,10 +95,38 @@ const routes = [
   {
     path: '/messageView',
     name: 'messageView',
+    redirect:'/messageView/reply',
     // route level code-splitting
     // this generates a separate chunk (about.[hash].js) for this route
     // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "about" */ '../views/MessageView')
+    component: () => import(/* webpackChunkName: "about" */ '../views/MessageView'),
+    children:[
+      {
+        path:'reply',
+        name:'reply',
+        component: () => import(/* webpackChunkName: "about" */ '../views/MessageView/Reply')
+      },
+      {
+        path:'kudos',
+        name:'kudos',
+        component: () => import(/* webpackChunkName: "about" */ '../views/MessageView/Kudos')
+      },
+      {
+        path:'aboutArticle',
+        name:'aboutArticle',
+        component: () => import(/* webpackChunkName: "about" */ '../views/MessageView/AboutArticle')
+      },
+      {
+        path:'aboutTrend',
+        name:'aboutTrend',
+        component: () => import(/* webpackChunkName: "about" */ '../views/MessageView/AboutTrend')
+      },
+      {
+        path:'systemMessage',
+        name:'systemMessage',
+        component: () => import(/* webpackChunkName: "about" */ '../views/MessageView/SystemMessage')
+      },
+    ]
   },
   {
     path: '/collectionView',
@@ -111,10 +139,31 @@ const routes = [
   {
     path: '/trendsView',
     name: 'trendsView',
+    redirect:'/trendsView/trendArticle',
     // route level code-splitting
     // this generates a separate chunk (about.[hash].js) for this route
     // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "about" */ '../views/TrendsView')
+    component: () => import(/* webpackChunkName: "about" */ '../views/TrendsView'),
+    children:[
+      {
+        path:'trendArticle',
+        name:'trendArticle',
+        component: () => import(/* webpackChunkName: "about" */ '../views/TrendsView/TrendArticle')
+      },
+      {
+        path:'concernTrend',
+        name:'concernTrend',
+        component: () => import(/* webpackChunkName: "about" */ '../views/TrendsView/ConcernTrend')
+      },
+    ]
+  },
+  {
+    path: '/detailTrend/:trendId',
+    name: 'detailTrend',
+    // route level code-splitting
+    // this generates a separate chunk (about.[hash].js) for this route
+    // which is lazy-loaded when the route is visited.
+    component: () => import(/* webpackChunkName: "about" */ '../views/DetailTrend')
   },
   {
     path:'/userSetting',

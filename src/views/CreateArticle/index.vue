@@ -5,6 +5,7 @@
         :initialValue="editorText"
         height="510px"
         ref="toastuiEditor"
+        language="zh_CN"
         @change="getHtml"
         :options="editorOptions"
         initialEditType="wysiwyg"
@@ -92,6 +93,7 @@
 <script>
 import "@toast-ui/editor/dist/toastui-editor.css";
 import { Editor } from "@toast-ui/vue-editor";
+import "@toast-ui/editor/dist/i18n/zh-cn";
 export default {
   name: "CreateArticle",
   components: {
@@ -136,7 +138,8 @@ export default {
       isTagInputShow: false,
       isTagButtonShow: true,
       editorOptions: {
-        hideModeSwitch: false
+        hideModeSwitch: false,
+        language: 'zh-CN'
       },
       articleMessage: {
         title: "",
@@ -152,7 +155,7 @@ export default {
         tagList: [{ validator: validateTagList, trigger: "blur" }]
       },
       articleId: null,
-      imageUrl: null
+      imageUrl: null,
     };
   },
   computed: {},
@@ -331,6 +334,8 @@ export default {
     }
     const selectNode = document.querySelector(".el-select-dropdown__wrap");
     selectNode.style.marginBottom = -10 + "px";
+    // this.$refs.toastuiEditor.invoke("setLanguage", "zh-CN",zhcn);
+      
   },
   beforeDestroy() {}
 };

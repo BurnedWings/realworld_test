@@ -50,51 +50,7 @@ export default {
       }
     },
     //提交评论
-    async commitComment() {
-      if (!this.trendId) {
-        if (this.userInfo._id) {
-          if (this.textarea) {
-            const comment = {};
-            comment.user = this.userInfo._id;
-            comment.article = this.articleId;
-            comment.body = this.textarea;
-            const ret = await this.$API.comment.createComment(comment);
-            if (ret.code === 200) {
-              this.textarea = "";
-              this.$emit("refComments");
-            }
-          } else {
-            this.$message({
-              type: "info",
-              message: "你还没有评论!"
-            });
-          }
-        } else {
-          this.$router.push("/login");
-        }
-      } else {
-        if (this.userInfo._id) {
-          if (this.textarea) {
-            const trendComment = {};
-            trendComment.user = this.userInfo._id;
-            trendComment.trend = this.trendId;
-            trendComment.body = this.textarea;
-            const ret = await this.$API.trend.createTrendComment(trendComment);
-            if (ret.code === 200) {
-              this.textarea = "";
-              this.$bus.$emit('refComments',)
-            }
-          } else {
-            this.$message({
-              type: "info",
-              message: "你还没有评论!"
-            });
-          }
-        } else {
-          this.$router.push("/login");
-        }
-      }
-    },
+    async commitComment() {},
     //输入表情
     getBrow(index) {
       for (let i in this.faceList) {
@@ -112,6 +68,36 @@ export default {
 };
 </script>
 
+<style lang="less">
+.comment-popover {
+  border: none;
+  background-color: transparent;
+}
+.my-emojis-box {
+  width: 100%;
+  height: 190px;
+  border-radius: 5px;
+  background: white;
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  z-index: 100;
+  overflow-y: scroll;
+  box-shadow: 0 2px 5px 0 rgb(0 0 0 / 16%), 0 2px 10px 0 rgb(0 0 0 / 12%);
+  ul {
+    display: flex;
+    flex-wrap: wrap;
+    padding: 10px;
+    li {
+      cursor: pointer;
+      width: 10%;
+      font-size: 26px;
+      list-style: none;
+      text-align: center;
+    }
+  }
+}
+</style>
 <style lang="less" scoped>
 .comment-input {
   margin-top: 30px;
@@ -120,13 +106,39 @@ export default {
   .user-img {
     float: left;
     margin-top: 12px;
-    margin-right: 8px;
+    margin-right: 9px;
     img {
       width: 48px;
       border-radius: 50%;
       cursor: pointer;
     }
   }
+
+  &:deep(.el-button) {
+    padding: 9px 8px;
+  }
+  &:deep(.el-textarea) {
+    width: 93.5%;
+  }
+  &:deep(.emojis-button) {
+    position: relative;
+    left: 57px;
+    top: 2px;
+  }
+  &:deep(.submit-button) {
+    position: relative;
+    left: 746px;
+    top: 1.5px;
+    height: 36px;
+    border: none;
+    color: white;
+    background-color: rgb(35, 109, 227);
+    box-shadow: 0 2px 5px 0 rgb(0 0 0 / 16%), 0 2px 10px 0 rgb(0 0 0 / 12%);
+  }
+  &:deep(.submit-button:hover) {
+  background-color: var(--theme_search_input_blue_color);
+  box-shadow: 0 2px 5px 0 rgb(0 0 0 / 24%), 0 5px 15px 0 rgb(0 0 0 / 19%);
+}
 }
 .comment-input:after {
   /*伪元素是行内元素 正常浏览器清除浮动方法*/

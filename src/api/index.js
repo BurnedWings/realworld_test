@@ -7,6 +7,8 @@ import * as tag from '@/api/product/tag'
 import * as profile from '@/api/product/profile'
 import * as comment from '@/api/product/comment'
 import * as collection from '@/api/product/collection'
+import * as trend from '@/api/product/trend'
+import * as message from '@/api/product/message'
 
 export default {
     user,
@@ -14,5 +16,7 @@ export default {
     tag,
     profile,
     comment,
-    collection
+    collection,
+    trend,
+    message
 }

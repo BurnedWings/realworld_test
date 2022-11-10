@@ -2661,7 +2661,7 @@ debug@^3.2.6, debug@^3.2.7:
   dependencies:
     ms "^2.1.1"
 
-debug@^4.0.1, debug@^4.1.0, debug@^4.1.1, debug@^4.3.2:
+debug@^4.0.1, debug@^4.1.0, debug@^4.1.1, debug@^4.3.2, debug@^4.3.3:
   version "4.3.4"
   resolved "https://registry.npmmirror.com/debug/-/debug-4.3.4.tgz#1319f6579357f2338d3337d2cdd4914bb5dcc865"
   integrity sha512-PRWFHuSU3eDtQJPvnNY7Jcket1j0t5OuOsFzPPzsekD52Zl8qUfFIPEiswXqIvHWGVHOgX+7G/vCNNhehwxfkQ==
@@ -5999,6 +5999,13 @@ vary@~1.1.2:
   version "1.1.2"
   resolved "https://registry.npmmirror.com/vary/-/vary-1.1.2.tgz#2299f02c6ded30d4a5961b0b9f74524a18f634fc"
   integrity sha512-BNGbWLfd0eUPabhkXUVm0j8uuvREyTh5ovRa/dyow/BqAbZJyC+5fU+IzQOzmAKzYqYRAISoRhdQr3eIZ/PXqg==
+
+velocityjs@^2.0.6:
+  version "2.0.6"
+  resolved "https://registry.npmmirror.com/velocityjs/-/velocityjs-2.0.6.tgz#fbd5ec5bc6e75a889f73c1d67baddd4e0af7b35a"
+  integrity sha512-QMYLeYLBX6eqekCin3OPmDAHapaUx3foNFE264ml1/yxRZ8TUUlI1+u6rtN4E8tKNqwzpRPeNgJtjLbgRNK4fw==
+  dependencies:
+    debug "^4.3.3"
 
 vue-eslint-parser@^8.0.1:
   version "8.3.0"

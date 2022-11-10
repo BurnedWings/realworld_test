@@ -64,6 +64,7 @@
         <CommentInput :articleId="detailArticle._id" @refComments="getComments"></CommentInput>
       </div>
       <div v-if="commentCount===0" class="no-comment-box">没有更多评论</div>
+      <!-- 评论主体 -->
       <div class="comments-body">
         <div v-for="(comment,myIndex) in commentsList" :key="comment._id" class="comment-item">
           <div class="item-line"></div>
@@ -175,7 +176,7 @@
       <ul class="side-toolbar-container">
         <li @click="kudos" class="side-toolbar-item">
           <i v-if="!isKudos" class="iconfont icon-dianzan"></i>
-          <i v-if="isKudos" class="iconfont icon-dianzan_kuai"></i>
+          <i v-if="isKudos" class="my-kudos iconfont icon-dianzan_kuai"></i>
         </li>
         <li class="side-toolbar-item">
           <a href="#comments-container">
@@ -183,7 +184,7 @@
           </a>
         </li>
         <li @click="collection" class="side-toolbar-item">
-          <i v-if="isCollection" class="iconfont icon-shoucangxuanzhong"></i>
+          <i v-if="isCollection" class="my-kudos iconfont icon-shoucangxuanzhong"></i>
           <i v-if="!isCollection" class="iconfont icon-shoucang"></i>
         </li>
       </ul>
@@ -216,9 +217,9 @@
 
 <script>
 import Vue from "vue";
+import store from "@/store/index";
 import CommentInput from "@/components/CommentInput";
 import ReplyInput from "@/components/ReplyInput";
-import store from "@/store/index";
 export default {
   name: "DetailArticle",
   components: {
@@ -1150,6 +1151,9 @@ export default {
         .my-star {
           font-size: 28px;
         }
+        .my-kudos{
+            color: var(--theme_search_input_blue_color);
+          }
       }
       .side-toolbar-item:hover {
         color: var(--theme_search_input_blue_color);

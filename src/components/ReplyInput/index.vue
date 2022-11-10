@@ -7,6 +7,8 @@
       ref="replyTextarea"
       type="textarea"
       resize="none"
+      maxlength="120"
+      show-word-limit
       :rows="3"
       :placeholder="'@'+toUser.username"
       v-model="textarea"
@@ -37,7 +39,8 @@ export default {
       toReplyId: null,
       toCommentId: "",
       toUser: "",
-      articleId: ""
+      articleId: "",
+      trendId: null
     };
   },
   computed: {
@@ -54,30 +57,59 @@ export default {
     //提交评论
     async commitReply() {
       if (this.userInfo._id) {
-        if (this.textarea) {
-          const reply = {};
-          reply.user = this.userInfo._id;
-          reply.article = this.articleId;
-          reply.body = this.textarea;
-          reply.comment = this.toCommentId;
-          if (this.toReplyId) {
-            reply.toReply = this.toReplyId;
-          }
-          const ret = await this.$API.comment.createReply(reply);
-          if (ret.code === 200) {
-            this.textarea = "";
-            this.$bus.$emit("refComments");
+        if (!this.trendId) {
+          if (this.textarea) {
+            const reply = {};
+            reply.user = this.userInfo._id;
+            reply.article = this.articleId;
+            reply.body = this.textarea;
+            reply.comment = this.toCommentId;
+            if (this.toReplyId) {
+              reply.toReply = this.toReplyId;
+            }
+            const ret = await this.$API.comment.createReply(reply);
+            if (ret.code === 200) {
+              this.textarea = "";
+              this.$bus.$emit("refComments");
+            } else {
+              this.$message({
+                type: "error",
+                message: "发送失败!"
+              });
+            }
           } else {
             this.$message({
-              type: "error",
-              message: "发送失败!"
+              type: "info",
+              message: "你还没有评论!"
             });
           }
         } else {
-          this.$message({
-            type: "info",
-            message: "你还没有评论!"
-          });
+          //发表动态回复
+          if (this.textarea) {
+            const reply = {};
+            reply.user = this.userInfo._id;
+            reply.trend = this.trendId;
+            reply.body = this.textarea;
+            reply.trendComment = this.toCommentId;
+            if (this.toReplyId) {
+              reply.toReply = this.toReplyId;
+            }
+            const ret = await this.$API.trend.createTrendReply(reply);
+            if (ret.code === 200) {
+              this.textarea = "";
+              this.$bus.$emit("refComments");
+            } else {
+              this.$message({
+                type: "error",
+                message: "发送失败!"
+              });
+            }
+          } else {
+            this.$message({
+              type: "info",
+              message: "你还没有评论!"
+            });
+          }
         }
       } else {
         this.$router.push("/login");
@@ -96,6 +128,7 @@ export default {
   created() {
     this.loadEmojis();
     this.$bus.$off("myFocus");
+    this.$bus.$off("trendReply");
   },
   mounted() {
     this.$bus.$on("myFocus", (user, articleId, commentId, replyId) => {
@@ -107,9 +140,19 @@ export default {
         this.$refs.replyTextarea.focus();
       });
     });
+    this.$bus.$on("trendReply", (user, trendId, commentId, replyId) => {
+      this.toCommentId = commentId;
+      this.toReplyId = replyId;
+      this.trendId = trendId;
+      this.toUser = user;
+      this.$nextTick(() => {
+        this.$refs.replyTextarea.focus();
+      });
+    });
   },
   beforeDestroy() {
-
+    this.$bus.$off("myFocus");
+    this.$bus.$off("trendReply");
   }
 };
 </script>

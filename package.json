@@ -17,6 +17,7 @@
     "element-ui": "^2.15.10",
     "lodash": "^4.17.21",
     "nprogress": "^0.2.0",
+    "velocityjs": "^2.0.6",
     "vue": "^2.6.14",
     "vue-router": "^3.5.1",
     "vuex": "3.6.2"

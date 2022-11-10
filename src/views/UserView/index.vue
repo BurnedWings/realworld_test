@@ -6,8 +6,8 @@
         <div class="navbar-bottom">
           <transition name="infoTransition">
             <div v-if="isShowUserInfoNav" class="userInfo-container">
-              <img :src="oneUserInfo.image" alt />
-              <span>{{ oneUserInfo.username }}</span>
+              <img @click="toTop" :src="oneUserInfo.image" alt />
+              <span @click="toTop" >{{ oneUserInfo.username }}</span>
             </div>
           </transition>
           <ul>
@@ -123,6 +123,9 @@ export default {
       if (ret.code === 200) {
         this.isConcern = ret.isConcern;
       }
+    },
+    toTop(){
+      window.scrollTo(0,0)
     }
   },
   computed: {
@@ -203,10 +206,12 @@ export default {
             border-radius: 50%;
             width: 32px;
             margin-right: 10px;
+            cursor: pointer;
           }
           span {
             font-size: 14px;
             font-weight: 600;
+            cursor: pointer;
           }
         }
         ul {

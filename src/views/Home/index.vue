@@ -208,12 +208,12 @@ export default {
 
       .no-article-list {
         .title-line {
-          background-color: rgb(131, 130, 130);
           width: 95%;
           height: 1px;
           margin-left: auto;
           margin-right: auto;
           transform: scaleY(0.6);
+          background-color: rgb(131, 130, 130);
         }
 
         .prompt-message {
