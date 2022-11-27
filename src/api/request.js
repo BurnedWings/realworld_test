@@ -1,6 +1,7 @@
 import axios from "axios";
 import nProgress from "nprogress";
 import 'nprogress/nprogress.css'
+import store from "@/store";
 
 const requests = axios.create({
   baseURL: '/api',
@@ -45,6 +46,13 @@ requests.interceptors.response.use(
             }
           })
 
+          if(ret.status===209){
+            // location.reload()
+            store.dispatch("clearUserInfo");
+            localStorage.removeItem('kumicho_access_token')
+            localStorage.removeItem('kumicho_refresh_token')
+            return Promise.resolve({})
+          }
 
           if (ret.data.code === 200) {
             const access_token = ret.data.access_token

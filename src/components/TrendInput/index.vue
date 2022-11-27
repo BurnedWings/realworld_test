@@ -67,6 +67,16 @@ export default {
     },
     //提交动态
     async commitTrend() {
+      if (this.$store.state.user.userInfo.status === 1) {
+        this.textarea = null
+        this.imgList = null
+        this.visible = false
+        this.$refs.upload.clearFiles();
+        return this.$message({
+          message: "你已被禁言十天，到期后自动解除",
+          type: "error"
+        });
+      }
       if (this.textarea != null) {
         const trend = {};
         trend.body = this.textarea;
@@ -83,6 +93,7 @@ export default {
           this.textarea = "";
           this.visible = false;
           this.imgList = null;
+          this.$refs.upload.clearFiles();
           this.$message({
             type: "success",
             message: "发布动态成功"

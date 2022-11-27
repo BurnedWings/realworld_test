@@ -1,7 +1,7 @@
 <template>
   <div class="comment-input">
     <div class="user-img">
-      <img :src="userInfo.image" alt />
+      <img @click="toDetailUserView" v-if="userInfo.image"  :src="$myBaseUrl+userInfo.image" alt />
     </div>
     <el-input
       type="textarea"
@@ -44,6 +44,14 @@ export default {
     }
   },
   methods: {
+    toDetailUserView(){
+      this.$router.push({
+        name: "userView",
+        params: {
+          userId:this.userInfo._id
+        }
+      });
+    },
     loadEmojis() {
       for (let i in appData) {
         this.faceList.push(appData[i].char);
@@ -51,6 +59,13 @@ export default {
     },
     //提交评论
     async commitComment() {
+      if (this.$store.state.user.userInfo.status === 1) {
+        this.textarea = "";
+        return this.$message({
+          message: "你已被禁言十天，到期后自动解除",
+          type: "error"
+        });
+      }
       if (!this.trendId) {
         if (this.userInfo._id) {
           if (this.textarea) {
@@ -82,7 +97,7 @@ export default {
             const ret = await this.$API.trend.createTrendComment(trendComment);
             if (ret.code === 200) {
               this.textarea = "";
-              this.$bus.$emit('refComments',)
+              this.$bus.$emit("refComments");
             }
           } else {
             this.$message({
@@ -121,6 +136,8 @@ export default {
     float: left;
     margin-top: 12px;
     margin-right: 8px;
+    width: 48px;
+    height: 48px;
     img {
       width: 48px;
       border-radius: 50%;

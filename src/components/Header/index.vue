@@ -1,7 +1,7 @@
 <template>
   <div>
     <header class="header container-fluid">
-      <a class="header_logo" @click="toHome">
+      <a class="header_logo" @click="toTop">
         <strong>Kumicho Forum</strong>
       </a>
       <ul class="navbar">
@@ -9,7 +9,9 @@
           <a>首页</a>
         </li>
         <li class="nav_item" @click="toMessageView">
-          <a>消息</a>
+          <el-badge :hidden="unCheckedCount===0" :value="unCheckedCount" class="item">
+            <a>消息</a>
+          </el-badge>
         </li>
         <li class="nav_item" @click="toTrendsView">
           <a>动态</a>
@@ -27,8 +29,8 @@
         </li>
         <li class="nav_item" @click="changeTheme">
           <a @mouseenter="mouseIn" @mouseleave="mouseOut">
-            <i v-if="lightTheme"  ref="themeSunIcon" class="el-icon-sunny"></i>
-            <i v-if="darkTheme"  ref="themeMoonIcon" class="el-icon-moon"></i>
+            <i v-if="lightTheme" ref="themeSunIcon" class="el-icon-sunny"></i>
+            <i v-if="darkTheme" ref="themeMoonIcon" class="el-icon-moon"></i>
           </a>
         </li>
         <li v-if="!userInfo" class="nav_item" @click="toLogin">
@@ -36,7 +38,7 @@
         </li>
         <li v-else class="nav_item" @click="showSelect">
           <a>
-            <img :src="userInfo.image" alt />
+            <img v-if="userInfo" :src="$myBaseUrl+userInfo.image" alt />
             <div class="select-button"></div>
           </a>
         </li>
@@ -76,7 +78,7 @@
           </li>
           <li v-else class="nav_item" @click="showSelect">
             <a>
-              <img :src="userInfo.image" alt />
+              <img v-if="userInfo" :src="$myBaseUrl+userInfo.image" alt />
             </a>
           </li>
         </ul>
@@ -89,7 +91,7 @@
       <div class="bottom">
         <div @click="toUserView">
           <div class="bottom-title">当前登录用户</div>
-          <div class="bottom-title">{{ userInfo.username }}</div>
+          <div v-if="userInfo" class="bottom-title">{{ userInfo.username }}</div>
         </div>
         <div class="line-one"></div>
         <ul class="bottom-ul-one">
@@ -141,8 +143,8 @@
           <div class="input-line"></div>
         </div>
         <div class="search-data-view">
-          <div class="data-item" v-for="(article, index) in searchArticleArr" :key="article_id" >
-            <div class="data-title" @click="toDetailArticleView(article._id)" >
+          <div class="data-item" v-for="(article, index) in searchArticleArr" :key="article._id">
+            <div class="data-title" @click="toDetailArticleView(article._id)">
               <div class="side-bar"></div>
               <div class="title-content">{{ article.title }}</div>
             </div>
@@ -177,9 +179,15 @@ export default {
       } else {
         return null;
       }
+    },
+    unCheckedCount() {
+      return this.$store.state.user.totalCount;
     }
   },
   methods: {
+    toTop(){
+      window.scrollTo(0, 0)
+    },
     //ok
     changeNavbar() {
       const headerNav = document.querySelector(".header");
@@ -379,7 +387,7 @@ export default {
       localStorage.removeItem("kumicho_access_token");
       this.closeSelect();
       this.$router.push("/");
-      location.reload();
+      this.$store.dispatch("clearUserInfo");
     },
     //显示下拉框
     showSelect() {
@@ -416,8 +424,8 @@ export default {
       searchBackground.classList.add("background-container-change");
       this.isSearchContainerShow = true;
       this.$nextTick(() => {
-      this.$refs.searchInput.focus()
-    })
+        this.$refs.searchInput.focus();
+      });
     },
     closeSearchView() {
       const searchBackground = document.querySelector(".background-container");
@@ -452,33 +460,34 @@ export default {
       },
       1500
     ),
-    mouseIn(){
-      if(this.darkTheme){
-        this.$refs.themeMoonIcon.classList.remove('el-icon-moon')
-        this.$refs.themeMoonIcon.classList.add('el-icon-sunny')
-      }else{ 
-        this.$refs.themeSunIcon.classList.remove('el-icon-sunny')
-        this.$refs.themeSunIcon.classList.add('el-icon-moon')
+    mouseIn() {
+      if (this.darkTheme) {
+        this.$refs.themeMoonIcon.classList.remove("el-icon-moon");
+        this.$refs.themeMoonIcon.classList.add("el-icon-sunny");
+      } else {
+        this.$refs.themeSunIcon.classList.remove("el-icon-sunny");
+        this.$refs.themeSunIcon.classList.add("el-icon-moon");
       }
     },
-    mouseOut(){
-      if(this.darkTheme){
-        this.$refs.themeMoonIcon.classList.add('el-icon-moon')
-        this.$refs.themeMoonIcon.classList.remove('el-icon-sunny')
-      }else{
-        this.$refs.themeSunIcon.classList.add('el-icon-sunny')
-        this.$refs.themeSunIcon.classList.remove('el-icon-moon')
+    mouseOut() {
+      if (this.darkTheme) {
+        this.$refs.themeMoonIcon.classList.add("el-icon-moon");
+        this.$refs.themeMoonIcon.classList.remove("el-icon-sunny");
+      } else {
+        this.$refs.themeSunIcon.classList.add("el-icon-sunny");
+        this.$refs.themeSunIcon.classList.remove("el-icon-moon");
       }
     },
-    toDetailArticleView(articleId){
+    toDetailArticleView(articleId) {
       this.$router.push({
         name: "detailArticle",
         params: {
-          articleId,
-        },
+          articleId
+        }
       });
-      this.closeSearchView()
-    }
+      this.closeSearchView();
+    },
+    
   },
   mounted() {
     //添加防抖函数
@@ -491,17 +500,27 @@ export default {
     // window.addEventListener("resize", this.screenResize);
 
     this.defaultTheme();
+    this.$store.dispatch("getSwiper");
+    this.$store.dispatch("getRecommendArticle");
     if (localStorage.kumicho_access_token) {
       this.$store.dispatch("getUserInfo");
+      this.$store.dispatch("getTotalCount");
+      this.$store.dispatch("getReportType");
     }
     this.$bus.$on("login", () => {
       this.$store.dispatch("getUserInfo");
+      this.$store.dispatch("getTotalCount");
+      this.$store.dispatch("getReportType");
     });
   }
 };
 </script>
-
-<style lang="less" >
+<style scoped>
+:deep(.el-badge .el-badge__content) {
+  border: 0px;
+}
+</style>
+<style lang="less"  >
 .header {
   width: 100%;
   height: 64px;
@@ -511,7 +530,7 @@ export default {
   left: 0;
   z-index: 1030;
   background-color: transparent;
-  transition: all 0.7s;
+  transition: all 0.3s;
   overflow: hidden;
   box-shadow: 0 2px 5px 0 rgb(0 0 0 / 16%), 0 2px 10px 0 rgb(0 0 0 / 12%);
 
@@ -520,10 +539,10 @@ export default {
     float: left;
     left: 20px;
     font-size: 20px;
-    transition: 0.5s;
     left: 8%;
     top: 16px;
     cursor: pointer;
+    transition: color 0.3s;
   }
 
   .navbar {
@@ -538,7 +557,8 @@ export default {
       cursor: pointer;
       a {
         font-weight: 600;
-        transition: 0.5s;
+        transition: color 0.3s;
+        
         img {
           width: 30px;
           border-radius: 50%;
@@ -574,7 +594,7 @@ export default {
 
     .my-animated-icon {
       border: none;
-      transition: all 0.7s;
+      // transition: background-color 0.3s;
 
       span {
         display: block;
@@ -584,7 +604,7 @@ export default {
         margin-left: 12px;
         margin-top: 7px;
         border-radius: 12px;
-        transition: all 0.5s;
+        // transition: background-color 0.3s;
       }
 
       //四个动画

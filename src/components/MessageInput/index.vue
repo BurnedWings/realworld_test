@@ -1,9 +1,10 @@
 <template>
   <div class="comment-input">
     <div class="user-img">
-      <img :src="userInfo.image" alt />
+      <img :src="$myBaseUrl+userInfo.image" alt />
     </div>
     <el-input
+      ref="replyTextarea"
       type="textarea"
       resize="none"
       maxlength="120"
@@ -34,10 +35,15 @@ export default {
   data() {
     return {
       textarea: "",
-      faceList: []
+      faceList: [],
+      trendId: null,
+      articleId: null,
+      toReplyId: null,
+      toCommentId: null,
+      toReplyOnwId: null
     };
   },
-  props: ["articleId", "trendId"],
+  // props: ["articleId", "trendId"],
   computed: {
     userInfo() {
       return this.$store.state.user.userInfo;
@@ -50,7 +56,79 @@ export default {
       }
     },
     //提交评论
-    async commitComment() {},
+    async commitComment() {
+      if (this.$store.state.user.userInfo.status === 1) {
+        this.textarea = null
+        return this.$message({
+          message: "你已被禁言十天，到期后自动解除",
+          type: "error"
+        });
+      }
+      //发表动态回复
+      if (!this.trendId) {
+        //回复文章评论
+        if (this.textarea) {
+          const reply = {};
+          reply.user = this.userInfo._id;
+          reply.article = this.articleId;
+          reply.body = this.textarea;
+          reply.comment = this.toCommentId;
+          if (this.toReplyId && this.toReplyOnwId) {
+            reply.toReply = this.toReplyId;
+            reply.toReplyId = this.toReplyOnwId;
+          }
+          const ret = await this.$API.comment.createReply(reply);
+          if (ret.code === 200) {
+            this.textarea = "";
+            this.$message({
+              type: "success",
+              message: "回复成功！"
+            });
+          } else {
+            this.$message({
+              type: "error",
+              message: "发送失败!"
+            });
+          }
+        } else {
+          this.$message({
+            type: "info",
+            message: "你还没有评论!"
+          });
+        }
+      } else {
+        //回复动态评论
+        if (this.textarea) {
+          const reply = {};
+          reply.user = this.userInfo._id;
+          reply.trend = this.trendId;
+          reply.body = this.textarea;
+          reply.trendComment = this.toCommentId;
+          if (this.toReplyId && this.toReplyOnwId) {
+            reply.toReply = this.toReplyId;
+            reply.toReplyId = this.toReplyOnwId;
+          }
+          const ret = await this.$API.trend.createTrendReply(reply);
+          if (ret.code === 200) {
+            this.textarea = "";
+            this.$message({
+              type: "success",
+              message: "回复成功！"
+            });
+          } else {
+            this.$message({
+              type: "error",
+              message: "发送失败!"
+            });
+          }
+        } else {
+          this.$message({
+            type: "info",
+            message: "你还没有评论!"
+          });
+        }
+      }
+    },
     //输入表情
     getBrow(index) {
       for (let i in this.faceList) {
@@ -63,8 +141,33 @@ export default {
   },
   created() {
     this.loadEmojis();
+    this.$bus.$off("reply");
+    this.$bus.$off("myFocus");
   },
-  destroyed() {}
+  mounted() {
+    this.$bus.$on("myFocus", (articleId, commentId, replyId, toReplyId) => {
+      this.toCommentId = commentId;
+      this.toReplyId = replyId;
+      this.articleId = articleId;
+      this.toReplyOnwId = toReplyId;
+      this.$nextTick(() => {
+        this.$refs.replyTextarea.focus();
+      });
+    });
+    this.$bus.$on("reply", (trendId, commentId, replyId, toReplyId) => {
+      this.toCommentId = commentId;
+      this.toReplyId = replyId;
+      this.trendId = trendId;
+      this.toReplyOnwId = toReplyId;
+      this.$nextTick(() => {
+        this.$refs.replyTextarea.focus();
+      });
+    });
+  },
+  destroyed() {
+    this.$bus.$off("reply");
+    this.$bus.$off("myFocus");
+  }
 };
 </script>
 
@@ -136,9 +239,9 @@ export default {
     box-shadow: 0 2px 5px 0 rgb(0 0 0 / 16%), 0 2px 10px 0 rgb(0 0 0 / 12%);
   }
   &:deep(.submit-button:hover) {
-  background-color: var(--theme_search_input_blue_color);
-  box-shadow: 0 2px 5px 0 rgb(0 0 0 / 24%), 0 5px 15px 0 rgb(0 0 0 / 19%);
-}
+    background-color: var(--theme_search_input_blue_color);
+    box-shadow: 0 2px 5px 0 rgb(0 0 0 / 24%), 0 5px 15px 0 rgb(0 0 0 / 19%);
+  }
 }
 .comment-input:after {
   /*伪元素是行内元素 正常浏览器清除浮动方法*/

@@ -24,6 +24,9 @@ export const getTrendKudosStatus = (trendKudos) => request({url:'/trendKudos/get
 //获取评论列表
 export const getCommentList = (trendId) => request({url:'/trendComments/getComments',method:'post',data:{trendId}})
 
+//获取评论列表(date)
+export const getCommentsListByDate = (trendId) => request({url:'/trendComments/getCommentsByDate',method:'post',data:{trendId}})
+
 //创建动态评论
 export const createTrendComment = (trendComment) => request({url:'/trendComments/createComment',method:'post',data:{trendComment}})
 

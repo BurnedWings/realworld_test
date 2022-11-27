@@ -6,21 +6,21 @@
         <div class="data-item">
           <div class="data-container">
             <div class="side-bar"></div>
-            <img class="user-img" :src="comment.user.image" />
+            <img class="user-img" :src="$myBaseUrl+comment.user.image" />
             <div class="item-message-container">
               <span class="user-name">{{comment.user.username}}</span>
               <span class="item-title">评论了你的文章</span>
               <br />
               <span class="user-bio">{{comment.body}}</span>
             </div>
-            <div class="own-message">
+            <div @click="toDetailArticle(comment.article._id)" class="own-message">
               <span>{{comment.article.title}}</span>
             </div>
           </div>
         </div>
         <div class="bottom-box">
           <div class="messageDate">{{$dayjs(comment.createdAt).format("YYYY/MM/DD HH:mm")}}</div>
-          <div class="my-toReply">
+          <div @click="showComment(index,comment.article._id,comment._id,)" class="my-toReply">
             <i class="iconfont icon-taolun"></i>
             回复
           </div>
@@ -30,18 +30,23 @@
             点赞
           </div>
         </div>
+        <div id="my-message-comment-container" :class="'my-message-comment-container'+index"></div>
       </div>
     </div>
   </div>
 </template>
 
 <script>
+import Vue from "vue";
+import store from "@/store/index";
+import MessageInput from "@/components/MessageInput";
 export default {
   name: "AboutArticle",
   data() {
     return {
       articleCommentList: null,
-      commentStatusArr: null
+      commentStatusArr: null,
+      commentAreaIndex: null
     };
   },
   methods: {
@@ -52,18 +57,66 @@ export default {
         this.commentStatusArr = ret.commentStatusArr;
       }
     },
-    async kudosTheComment(commentId,ofUserId) {
+    async kudosTheComment(commentId, ofUserId) {
       const commentKudos = {};
       commentKudos.comment = commentId;
       commentKudos.ofUser = ofUserId;
       const ret = await this.$API.comment.commentKudos(commentKudos);
       if (ret.code === 200) {
-        this.getArticleComment()
+        this.getArticleComment();
       }
+    },
+    toDetailArticle(articleId) {
+      this.$router.push({
+        name: "detailArticle",
+        params: {
+          articleId
+        }
+      });
+    },
+    async changeUnCheckedArticleComment() {
+      const ret = await this.$API.message.changeUnCheckedArticleComment();
+      if (ret.code === 200) {
+        this.$store.dispatch("getTotalCount");
+      }
+    },
+    showComment(index, articleOrTrend, commentOrTrendComment) {
+      const commentArea = document.querySelector(
+        `.my-message-comment-container${index}`
+      );
+      // if (!commentArea.firstChild) {
+      // }
+      if (this.commentAreaIndex != null) {
+        const oldCommentArea = document.querySelector(
+          `.my-message-comment-container${this.commentAreaIndex}`
+        );
+        oldCommentArea.removeChild(oldCommentArea.firstChild);
+      }
+      this.$nextTick(() => {
+        const myDiv = document.createElement("div");
+        myDiv.classList.add("test");
+        commentArea.appendChild(myDiv);
+        const CommentComponent = Vue.extend(MessageInput);
+        new CommentComponent({ store }).$mount(".test");
+        this.commentAreaIndex = index;
+      });
+      setTimeout(() => {
+        this.$bus.$emit(
+          "myFocus",
+          articleOrTrend,
+          commentOrTrendComment,
+          null,
+          null
+        );
+      }, 50);
     }
   },
   mounted() {
     this.getArticleComment();
+
+    if (this.$store.state.user.articleCommentCount > 0) {
+      this.changeUnCheckedArticleComment();
+    }
   }
 };
 </script>
@@ -85,7 +138,7 @@ export default {
     margin-bottom: 10px;
     border-radius: 5px;
     box-shadow: 0 1px 3px 0 rgb(0 0 0 / 24%), 0 3px 5px 0 rgb(0 0 0 / 19%);
-    transition: all 0.3s;
+   transition: background-color 0.3s;
   }
   .right-main {
     width: 100%;
@@ -93,10 +146,14 @@ export default {
     overflow-y: auto;
     background-color: var(--theme_inner_bg_color);
     border-radius: 5px;
-    transition: all 0.3s;
+   transition: background-color 0.3s;
     box-shadow: 0 3px 5px 0 rgb(0 0 0 / 24%), 0 5px 5px 0 rgb(0 0 0 / 19%);
     .main-item {
       margin-top: 20px;
+      #my-message-comment-container {
+        width: 100%;
+        padding-left: 23px;
+      }
       &:after {
         /*伪元素是行内元素 正常浏览器清除浮动方法*/
         content: "";
@@ -107,9 +164,9 @@ export default {
       }
       .data-item {
         margin-bottom: 0px;
-        transition: all 0.4s;
+        // transition: all 0.4s;
         .data-container {
-          transition: all 0.5s;
+          // transition: all 0.5s;
           font-weight: 600;
           position: relative;
           height: 70px;
@@ -128,7 +185,7 @@ export default {
             display: -webkit-box;
             -webkit-line-clamp: 5;
             -webkit-box-orient: vertical;
-            cursor: default;
+            cursor: pointer;
           }
           &:after {
             /*伪元素是行内元素 正常浏览器清除浮动方法*/
@@ -180,7 +237,7 @@ export default {
             .user-name {
               font-weight: 600;
               cursor: pointer;
-              transition: color 0.4s;
+              // transition: color 0.4s;
               margin-left: 2px;
               &:hover {
                 color: var(--theme_search_input_blue_color);

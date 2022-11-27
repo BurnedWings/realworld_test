@@ -27,7 +27,7 @@ export default {
     return {
       isSearchContainerShow: false,
       updateUrl: "",
-      theImgDataToSend: "",
+      theImgDataToSend: ""
     };
   },
   methods: {
@@ -45,11 +45,11 @@ export default {
               minWidth: 200,
               minHeight: 200,
               imageSmoothingEnabled: true,
-              imageSmoothingQuality: "medium",
+              imageSmoothingQuality: "medium"
             })
-            .toBlob((blob) => {
+            .toBlob(blob => {
               const formData = new FormData();
-              formData.append("files", blob);
+              formData.append("files", blob, "example.png");
 
               this.theImgDataToSend = { formData };
             });
@@ -62,17 +62,19 @@ export default {
               minWidth: 100,
               minHeight: 100,
               imageSmoothingEnabled: true,
-              imageSmoothingQuality: "medium",
+              imageSmoothingQuality: "medium"
             })
-            .toBlob((blob) => {
+            .toBlob(blob => {
               const formData = new FormData();
               formData.append("files", blob, "example.png");
               this.theImgDataToSend = { formData };
             });
-        },
+        }
       });
     },
     closeEditView() {
+      let file = document.getElementById("imgReader");
+      file.value = "";
       const searchBackground = document.querySelector(
         ".editBackground-container"
       );
@@ -90,41 +92,41 @@ export default {
           this.theImgDataToSend.formData
         );
         if (ret.code === 200) {
-          window.location.reload();
+          this.$store.dispatch("getUserInfo");
+          this.closeEditView()
         }
       } catch (error) {
         // this.$message({})
       }
     },
-    async sendAvatar() {
-      try {
-        const ret = await this.$API.user.updateUserAvatar(
-          this.theImgDataToSend.formData
-        );
-        if (ret.code === 200) {
-          window.location.reload();
-        }
-      } catch (error) {
-        // this.$message({})
-      }
-    },
+    // async sendAvatar() {
+    //   try {
+    //     const ret = await this.$API.user.updateUserAvatar(
+    //       this.theImgDataToSend.formData
+    //     );
+    //     if (ret.code === 200) {
+    //       window.location.reload();
+    //     }
+    //   } catch (error) {
+    //     // this.$message({})
+    //   }
+    // },
     showEditView() {
       const hei = document.body.clientHeight;
       const searchBackground = document.querySelector(
         ".editBackground-container"
       );
-      searchBackground.style.height = hei + "px";
+      searchBackground.style.height = 100 + "vh";
       searchBackground.classList.add("editBackground-container-change");
       this.isSearchContainerShow = true;
       setTimeout(() => {
         const image = document.getElementById("myImage");
         this.initCropper(image);
       }, 1);
-    },
+    }
   },
-  mounted(){
-    this.$bus.$on("showEdit", (data,imgName) => {
-      console.log(imgName)
+  mounted() {
+    this.$bus.$on("showEdit", (data, imgName) => {
       this.showEditView();
       this.updateUrl = data;
     });
@@ -134,13 +136,13 @@ export default {
 
 <style lang="less" scoped>
 .editBackground-container {
-    opacity: 0;
-    width: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    position: absolute;
-    z-index: 1031;
-    transition: opacity 0.5s;
-  }
+  opacity: 0;
+  width: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  position: fixed;
+  z-index: 1031;
+  transition: opacity 0.5s;
+}
 .edit-container {
   width: 450px;
   height: 485px;

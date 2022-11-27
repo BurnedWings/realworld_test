@@ -53,7 +53,7 @@
             enctype="multipart/form-data"
             @change="loadingImg"
           />
-          <img :src="userInfo.image" alt="" />
+          <img v-if="userInfo.image" :src="$myBaseUrl+userInfo.image" alt="" />
           <div class="edit-button" @click="showEditView">
             <i class="el-icon-edit"></i>
             Edit
@@ -77,7 +77,8 @@ export default {
   computed: {
     userInfo() {
       const info = this.$store.state.user.userInfo;
-      info.createdAt = dayjs(info.createdAt).format("YYYY/MM/DD");
+      info.birthday = new Date(info.birthday)
+      info.createdAt = dayjs(info.createdAt).format("YYYY-MM-DD");
       if (info.bio === null) {
         info.bio = "这个人很神秘，什么都没有留下。";
       }

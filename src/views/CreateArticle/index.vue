@@ -1,18 +1,19 @@
 <template>
   <div class="my-create-view">
     <div class="edit-view">
-      <Editor
+      <transition name="fade-transform" mode="out-in">
+         <Editor
         :initialValue="editorText"
         height="510px"
         ref="toastuiEditor"
         language="zh_CN"
-        @change="getHtml"
+        @blur="getHtml"
         :options="editorOptions"
         initialEditType="wysiwyg"
         previewStyle="vertical"
       />
+    </transition>
     </div>
-
     <div class="article-message">
       <el-form
         :model="articleMessage"
@@ -49,10 +50,12 @@
         </el-form-item>
         <el-form-item label="分类" prop="category">
           <el-select v-model="articleMessage.category" placeholder="请选择分类" clearable>
-            <el-option label="分类一" value="shanghai"></el-option>
-            <el-option label="分类二" value="beijing"></el-option>
-            <el-option label="分类二" value="taiyuan"></el-option>
-            <el-option label="分类二" value="jiangsu"></el-option>
+            <el-option
+              v-for="(type,index) in articleType"
+              :key="type._id"
+              :label="type.content"
+              :value="type._id"
+            ></el-option>
           </el-select>
         </el-form-item>
         <el-form-item label="标签" prop="tagList" ref="tagItem">
@@ -139,7 +142,7 @@ export default {
       isTagButtonShow: true,
       editorOptions: {
         hideModeSwitch: false,
-        language: 'zh-CN'
+        language: "zh-CN"
       },
       articleMessage: {
         title: "",
@@ -155,11 +158,14 @@ export default {
         tagList: [{ validator: validateTagList, trigger: "blur" }]
       },
       articleId: null,
-      imageUrl: null,
+      imageUrl: null
     };
   },
-  computed: {},
-
+  computed: {
+    articleType() {
+      return this.$store.state.user.typeList;
+    }
+  },
   methods: {
     getHtml() {
       // if(this.$refs.toastuiEditor.invoke("isMarkdownMode")){
@@ -176,6 +182,14 @@ export default {
       }
       this.$refs[formName].validate(async valid => {
         if (valid) {
+          if (this.$store.state.user.userInfo.status === 1) {
+            this.$refs[formName].resetFields();
+            this.$refs.toastuiEditor.invoke("reset");
+            return this.$message({
+              message: "你当前已被禁言，十天后解除",
+              type: "error"
+            });
+          }
           //验证成功
           if (this.articleId) {
             this.articleMessage.body = this.editorText;
@@ -184,6 +198,10 @@ export default {
               articleBody: this.articleMessage
             });
             if (ret.code === 200) {
+              this.$message({
+                type: "success",
+                message: "提交成功"
+              });
               this.$refs[formName].resetFields();
               this.$refs.toastuiEditor.invoke("reset");
             }
@@ -195,6 +213,10 @@ export default {
             this.articleMessage
           );
           if (ret.code === 200) {
+            this.$message({
+              type: "success",
+              message: "提交成功"
+            });
             this.$refs[formName].resetFields();
             this.$refs.upload.clearFiles();
             this.$refs.toastuiEditor.invoke("reset");
@@ -308,6 +330,18 @@ export default {
         }
       }
     },
+    async getNotAuditAndBackArticleDetail(articleId) {
+      const ret = await this.$API.article.getNotAuditAndBackArticleDetail(articleId);
+      if (ret.code === 200) {
+        this.editorText = this.$refs.toastuiEditor.invoke(
+          "setHTML",
+          ret.data.body
+        );
+        for (const key in this.articleMessage) {
+          this.articleMessage[key] = ret.data[key];
+        }
+      }
+    },
     async uploadFile(params) {
       const _file = params.file;
       // 通过 FormData 对象上传文件
@@ -328,14 +362,20 @@ export default {
   },
   mounted() {
     this.myImgUpload();
-    if (this.$route.params.articleId) {
-      this.articleId = this.$route.params.articleId;
-      this.getDetailArticle(this.$route.params.articleId);
+    if (this.$route.params.isNotAudit) {
+      if (this.$route.params.articleId) {
+        this.articleId = this.$route.params.articleId;
+        this.getNotAuditAndBackArticleDetail(this.$route.params.articleId);
+      }
+    } else {
+      if (this.$route.params.articleId) {
+        this.articleId = this.$route.params.articleId;
+        this.getDetailArticle(this.$route.params.articleId);
+      }
     }
     const selectNode = document.querySelector(".el-select-dropdown__wrap");
     selectNode.style.marginBottom = -10 + "px";
     // this.$refs.toastuiEditor.invoke("setLanguage", "zh-CN",zhcn);
-      
   },
   beforeDestroy() {}
 };
@@ -374,31 +414,31 @@ export default {
 .my-create-view {
   transition: all 0.5s;
   width: 100%;
-  height: 1300px;
+  min-height: 100vh;
   background-color: var(--theme_outer_bg_color);
-
+  overflow: hidden;
   .edit-view {
     transition: inherit;
     background-color: white;
-    width: 70%;
-    position: absolute;
-    left: 50%;
-    transform: translate(-50%, 0);
+    width: 1000px;
     border-radius: 0.5rem;
+    margin-left: auto;
+    margin-right: auto;
     margin-top: 100px;
     box-shadow: 0 12px 15px 0 rgb(0 0 0 / 24%), 0 17px 50px 0 rgb(0 0 0 / 19%);
   }
   .article-message {
     transition: inherit;
-    width: 70%;
+    width: 1000px;
     background-color: white;
-    position: absolute;
-    top: 670px;
-    left: 50%;
-    transform: translate(-50%, 0);
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 40px;
     border-radius: 0.5rem;
     box-shadow: 0 12px 15px 0 rgb(0 0 0 / 24%), 0 17px 50px 0 rgb(0 0 0 / 19%);
     .article-form {
+      padding-top: 20px;
+      padding-bottom: 5px;
       margin-top: 20px;
       width: 90%;
       .my-tag-input {

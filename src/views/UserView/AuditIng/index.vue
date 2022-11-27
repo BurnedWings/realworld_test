@@ -2,8 +2,10 @@
   <div>
     <div class="user-article">
       <div v-for="(article, index) in articles" :key="article._id" class="article-item">
-        <div @click="showDetailArticle(article._id)">
-          <div class="title">{{ article.title }}</div>
+        <div @click="showDetailArticle(article._id,article.isAudit,article.status)">
+          <div
+            class="title"
+          >{{ article.title }}{{!article.isAudit?'(审核中)':''}}{{article.status===1?'(已退回)':''}}</div>
           <div v-if="isLoginUser" class="article-edit">
             <el-button type="primary" size="mini" @click.stop="editArticle(article._id)">编辑</el-button>
             <el-button type="danger" size="mini" @click.stop="toDeleteArticle">删除</el-button>
@@ -31,7 +33,7 @@
         <div class="line"></div>
         <el-dialog
           title="温馨提示"
-          
+          :modal="false"
           :show-close="false"
           :visible.sync="dialogVisible"
           width="30%"
@@ -44,7 +46,7 @@
           </span>
         </el-dialog>
       </div>
-      <div v-if="hasNoArticle" class="no-article-message">还没有发布过文章~</div>
+      <div v-if="hasNoArticle" class="no-article-message">没有待审核的文章~</div>
     </div>
   </div>
 </template>
@@ -54,7 +56,7 @@ import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 dayjs.extend(customParseFormat);
 export default {
-  name: "UserArticle",
+  name: "Auditing",
   data() {
     return {
       articles: "",
@@ -72,7 +74,9 @@ export default {
   methods: {
     async getArticles() {
       try {
-        const ret = await this.$API.article.getArticlesOfOneUser(this.userId);
+        const ret = await this.$API.article.getNotAuditAndBackArticle(
+          this.userId
+        );
         if (ret.code === 200) {
           this.articles = ret.articles;
           if (ret.articles.length === 0) {
@@ -81,19 +85,32 @@ export default {
         }
       } catch (error) {}
     },
-    showDetailArticle(articleId) {
-      this.$router.push({
-        name: "detailArticle",
-        params: {
-          articleId
-        }
-      });
+    showDetailArticle(articleId, isAudit, status) {
+      if (isAudit&&status===0) {
+        this.$router.push({
+          name: "detailArticle",
+          params: {
+            articleId
+          }
+        });
+      } else if (status === 1) {
+        this.$message({
+          type: "error",
+          message: "该文章已被退回锁定"
+        });
+      } else {
+        this.$message({
+          type: "error",
+          message: "该文章还没有通过审核"
+        });
+      }
     },
     editArticle(articleId) {
       this.$router.push({
         name: "editArticle",
         params: {
-          articleId
+          articleId,
+          isNotAudit:true
         }
       });
     },

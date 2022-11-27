@@ -5,7 +5,7 @@
       <div v-for="(trend,index) in concernTrendList" :key="trend._id" class="trend-item">
         <div class="item-line"></div>
         <div class="trend-item-top">
-          <img :src="trend.user.image" alt />
+          <img :src="$myBaseUrl+trend.user.image" alt />
           <div class="username">{{trend.user.username}}</div>
           <div class="updateDate">{{$dayjs(trend.createdAt).format("YYYY/MM/DD")}}&nbsp;更新</div>
           <el-popconfirm
@@ -20,12 +20,18 @@
           <span v-html="trend.body"></span>
         </div>
         <div class="img-container">
-          <el-image
+          <div
             v-for="(img,index) in trend.image"
-            :key="index"
-            :src="img"
-            :preview-src-list="trend.image"
-          ></el-image>
+            style="width:200px;height:200px;overflow:hidden;display:inline-block;margin-right:5px;"
+          >
+            <el-image
+              style="width:100%;height: 100%;"
+              :key="index"
+              :src="img"
+              :preview-src-list="trend.image"
+              fit="cover"
+            ></el-image>
+          </div>
         </div>
         <div class="trend-message">
           <div class="trend-message-item">
@@ -36,7 +42,7 @@
             <i class="iconfont icon-taolun"></i>
             {{trend.commentsCount}}讨论
           </div>
-          <div class="trend-message-item">
+          <div @click="kudos(trend._id,trend.user._id)" class="trend-message-item">
             <i class="iconfont icon-dianzan"></i>
             <!-- el-icon-star-off -->
             {{trend.favoritesCount}}点赞
@@ -55,6 +61,7 @@
 import Vue from "vue";
 import store from "@/store/index";
 import TrendComment from "@/components/TrendComment";
+import router from '@/router';
 export default {
   name: "UserTrends",
   components: {},
@@ -65,50 +72,62 @@ export default {
       imgList: []
     };
   },
-  computed:{
-    userId(){
-      return this.$store.state.user.userInfo._id
+  computed: {
+    userId() {
+      return this.$store.state.user.userInfo._id;
     }
   },
   methods: {
     //点赞
     async kudos(trendId, authorId) {
-      if (this.$store.state.user.userId) {
+      if (this.$store.state.user.userInfo._id) {
         const ret = await this.$API.trend.kudos({
           trend: trendId,
           user: this.$store.state.user.userId,
           ofUser: authorId
         });
         if (ret.code === 200) {
-          this.getTrendArticle();
+          this.getConcernTrend();
         }
       } else {
         this.$router.push("/login");
       }
     },
     showComment(index, trendId) {
-      const commentArea = document.querySelector(
-        `.my-comment-container${index}`
-      );
-      // if (!commentArea.firstChild) {
-      // }
-      if (this.commentAreaIndex != null) {
+      if (this.commentAreaIndex === index) {
         const oldCommentArea = document.querySelector(
           `.my-comment-container${this.commentAreaIndex}`
         );
         oldCommentArea.removeChild(oldCommentArea.firstChild);
+        this.commentAreaIndex = null;
+      } else {
+        const commentArea = document.querySelector(
+          `.my-comment-container${index}`
+        );
+        // if (!commentArea.firstChild) {
+        // }
+        if (this.commentAreaIndex != null) {
+          const oldCommentArea = document.querySelector(
+            `.my-comment-container${this.commentAreaIndex}`
+          );
+          oldCommentArea.removeChild(oldCommentArea.firstChild);
+        }
+        this.$nextTick(() => {
+          const myDiv = document.createElement("div");
+          myDiv.classList.add("test");
+          commentArea.appendChild(myDiv);
+          const CommentComponent = Vue.extend(TrendComment);
+          new CommentComponent({ store,router }).$mount(".test");
+          this.commentAreaIndex = index;
+          const commentDiv = document.querySelector(
+            `.my-comment-container${index}`
+          );
+          window.scrollTo(0, commentDiv.offsetTop - 100);
+        });
+        setTimeout(() => {
+          this.$bus.$emit("showComment", trendId);
+        }, 50);
       }
-      this.$nextTick(() => {
-        const myDiv = document.createElement("div");
-        myDiv.classList.add("test");
-        commentArea.appendChild(myDiv);
-        const CommentComponent = Vue.extend(TrendComment);
-        new CommentComponent({ store }).$mount(".test");
-        this.commentAreaIndex = index;
-      });
-      setTimeout(() => {
-        this.$bus.$emit("showComment", trendId);
-      }, 50);
     },
     toDetailTrend(trendId) {
       this.$router.push({
@@ -121,18 +140,26 @@ export default {
     async getConcernTrend() {
       const ret = await this.$API.trend.getOwnTrend(this.$route.params.userId);
       if (ret.code === 200) {
+        for (const i in ret.trendList) {
+          let imgArr = [];
+          ret.trendList[i].image.forEach(item => {
+            item = this.$myBaseUrl + item;
+            imgArr.push(item);
+          });
+          ret.trendList[i].image = imgArr;
+        }
         this.concernTrendList = ret.trendList;
       }
     },
     //删除动态
-    async deleteOwnTrend(trendId){
-      const ret = await this.$API.trend.deleteTrend(trendId)
-      if(ret.code===200){
+    async deleteOwnTrend(trendId) {
+      const ret = await this.$API.trend.deleteTrend(trendId);
+      if (ret.code === 200) {
         this.getConcernTrend();
         this.$message({
-          type:'success',
-          message:'删除成功~'
-        })
+          type: "success",
+          message: "删除成功~"
+        });
       }
     }
   },
@@ -215,25 +242,28 @@ export default {
       position: relative;
       .my-edit-icon {
         float: right;
-        margin-top:15px;
+        margin-top: 15px;
         cursor: pointer;
         &:hover {
           color: var(--theme_search_input_blue_color);
         }
       }
       img {
+        cursor: default;
         width: 49px;
         border-radius: 50%;
         margin-left: 15px;
         margin-top: 5px;
       }
       .username {
+        cursor: default;
         position: absolute;
         top: 10px;
         margin-left: 10px;
         display: inline-block;
       }
       .updateDate {
+        cursor: default;
         position: absolute;
         top: 33px;
         left: 73px;
@@ -257,11 +287,12 @@ export default {
       width: 52%;
       margin-top: 10px;
       margin-left: 73px;
-      :deep(.el-image) {
-        width: 180px;
-        margin-right: 5px;
-        margin-bottom: 5px;
-      }
+      // :deep(.el-image) {
+      //   width: 180px;
+      //   margin-right: 5px;
+      //   margin-bottom: 5px;
+      //   object-fit: cover;
+      // }
     }
     .trend-message {
       width: 300px;

@@ -1,9 +1,10 @@
 <template>
   <div class="container-of-comment">
+    <div ref="dialogContainer" class="my-dialog-container"></div>
     <div class="comment-top-container">
       <div class="search-type">
         <ul>
-          <li ref="orderByHot" class="active" @click="orderByHot">按热度排序</li>
+          <li ref="orderByHot" class="active" @click="orderByFav">按热度排序</li>
           <li ref="orderByTime" @click="orderByTime">按时间排序</li>
         </ul>
       </div>
@@ -11,7 +12,7 @@
       <div ref="activeLineTwo"></div>
       <div class="line"></div>
       <div class="comment-input-container">
-        <CommentInput :trendId="trendId" ></CommentInput>
+        <CommentInput :trendId="trendId"></CommentInput>
       </div>
       <div v-if="commentCount===0" class="no-comment-box">没有更多评论</div>
     </div>
@@ -20,7 +21,11 @@
         <div class="item-body">
           <div class="item-line"></div>
           <div class="user-avatar">
-            <img :src="comment.user.image" alt />
+            <img
+              @click="toDetailUserView(comment.user._id)"
+              :src="$myBaseUrl+comment.user.image"
+              alt
+            />
           </div>
           <div class="comment-content">
             <div class="user-name">{{comment.user.username}}</div>
@@ -54,75 +59,122 @@
                 </el-popconfirm>
                 <i v-else @click="toEditComment(myIndex)" class="el-icon-more"></i>
                 <div @mouseleave="closeBox(myIndex)" ref="editBox" class="to-edit-comment">
-                  <span>加入黑名单</span>
-                  <br />
-                  <span>举报</span>
+                  <span @click="toReportTheComment(comment._id,comment.user._id)">举报</span>
                 </div>
               </div>
             </div>
-            <div class="reply-item" v-for="(reply,index) in comment.replyList" :key="reply._id">
-              <div class="reply-left">
-                <img :src="reply.user.image" alt />
-              </div>
-              <div class="reply-right">
-                <span class="reply-user-name">{{reply.user.username}}</span>
-                <span v-if="reply.toReply" class="reply-to">@{{reply.toReply.username}}</span>
-                <span>{{reply.body}}</span>
-                <div class="reply-item-bottom">
-                  <div
-                    class="reply-date"
-                  >{{$dayjs(reply.createdAt).format("YYYY/MM/DD")}}&nbsp;&nbsp;{{$dayjs(reply.createdAt).format("HH:mm")}}</div>
-                  <div @click="kudosTheReply(reply._id,reply.user._id)" class="kudos">
-                    <i
-                      v-if="commentStatusArr===null||commentStatusArr[myIndex].reply[index]===0"
-                      class="iconfont icon-dianzan"
-                    ></i>
-                    <i
-                      v-if="commentStatusArr!=null&&commentStatusArr[myIndex].reply[index]===1"
-                      class="my-dianzan-icon iconfont icon-dianzan"
-                    ></i>&nbsp;
-                    <span>{{reply.favoritesCount>0?reply.favoritesCount:''}}</span>
-                  </div>
-                  <div
-                    @click="showReplyInput(myIndex,reply.user,reply.user._id,comment._id,comment.trend)"
-                    class="reply"
-                  >回复</div>
-                  <div class="reply-edit">
-                    <el-popconfirm
-                      title="你确定要删除评论嘛?"
-                      class="edit-container"
-                      @confirm="deleteOwnReply(reply._id)"
-                    >
-                      <i
-                        slot="reference"
-                        v-if="userId===reply.user._id"
-                        class="my-edit-icon el-icon-delete"
-                      ></i>
-                    </el-popconfirm>
-                    <i
-                      v-if="userId!=reply.user._id"
-                      @click="toEditReply(myIndex,index)"
-                      class="my-edit-icon el-icon-more"
-                    ></i>
+            <div :id="'reply-container'+myIndex" class="reply-container">
+              <div class="reply-item" v-for="(reply,index) in comment.replyList" :key="reply._id">
+                <div class="reply-left">
+                  <img
+                    @click="toDetailUserView(reply.user._id)"
+                    :src="$myBaseUrl+reply.user.image"
+                    alt
+                  />
+                </div>
+                <div class="reply-right">
+                  <span class="reply-user-name">{{reply.user.username}}</span>
+                  <span v-if="reply.toReply" class="reply-to">@{{reply.toReply.username}}</span>
+                  <span>{{reply.body}}</span>
+                  <div class="reply-item-bottom">
                     <div
-                      @mouseleave="closeReplyBox(myIndex,index)"
-                      :ref="'replyEditBox'+myIndex+index"
-                      class="to-edit-reply"
-                    >
-                      <span>加入黑名单</span>
-                      <br />
-                      <span>举报</span>
+                      class="reply-date"
+                    >{{$dayjs(reply.createdAt).format("YYYY/MM/DD")}}&nbsp;&nbsp;{{$dayjs(reply.createdAt).format("HH:mm")}}</div>
+                    <div @click="kudosTheReply(reply._id,reply.user._id)" class="kudos">
+                      <i
+                        v-if="commentStatusArr===null||commentStatusArr[myIndex].reply[index]===0"
+                        class="iconfont icon-dianzan"
+                      ></i>
+                      <i
+                        v-if="commentStatusArr!=null&&commentStatusArr[myIndex].reply[index]===1"
+                        class="my-dianzan-icon iconfont icon-dianzan"
+                      ></i>&nbsp;
+                      <span>{{reply.favoritesCount>0?reply.favoritesCount:''}}</span>
+                    </div>
+                    <div
+                      @click="showReplyInput(myIndex,reply.user,reply.user._id,comment._id,comment.trend,reply._id)"
+                      class="reply"
+                    >回复</div>
+                    <div class="reply-edit">
+                      <el-popconfirm
+                        title="你确定要删除评论嘛?"
+                        class="edit-container"
+                        @confirm="deleteOwnReply(reply._id)"
+                      >
+                        <i
+                          slot="reference"
+                          v-if="userId===reply.user._id"
+                          class="my-edit-icon el-icon-delete"
+                        ></i>
+                      </el-popconfirm>
+                      <i
+                        v-if="userId!=reply.user._id"
+                        @click="toEditReply(myIndex,index)"
+                        class="my-edit-icon el-icon-more"
+                      ></i>
+                      <div
+                        @mouseleave="closeReplyBox(myIndex,index)"
+                        :ref="'replyEditBox'+myIndex+index"
+                        class="to-edit-reply"
+                      >
+                        <span @click="toReportTheReport(reply._id,reply.user._id)">举报</span>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
+            <div
+              :id="'two-more-message'+myIndex"
+              @click="showMoreReply(myIndex)"
+              v-if="comment.replyList.length>2"
+              class="two-more-message"
+            >共{{comment.replyList.length}}条,点击查看</div>
             <div id="reply-input-container" :class="'reply-input-container'+myIndex"></div>
           </div>
         </div>
       </div>
       <!-- <ReplyInput v-if="isReplyInputShow" ref="ReplyInput" :toUser="toUser" :articleId="detailArticle._id" @refComments="getComments" ></ReplyInput>-->
     </div>
+    <el-dialog
+      title="请编辑举报理由"
+      :visible.sync="dialogVisible"
+      width="30%"
+      :before-close="handleClose"
+      :modal="false"
+      close="my-return-box"
+      :modal-append-to-body="false"
+    >
+      <span style="margin-right:110px;">请选择违规类型</span>
+      <el-select clearable v-model="reportValue" placeholder="请选择">
+        <el-option
+          v-for="item in reportType"
+          :key="item._id"
+          :label="item.content"
+          :value="item._id"
+        ></el-option>
+      </el-select>
+      <el-input
+        style="width:98.2%;margin-top:20px;"
+        type="textarea"
+        :rows="6"
+        resize="none"
+        maxlength="160"
+        show-word-limit
+        placeholder="请输入具体描述"
+        v-model="textarea"
+      ></el-input>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="closeReportBox">取 消</el-button>
+        <el-button
+          v-if="targetReportComment"
+          style="margin-right:8px;"
+          type="danger"
+          @click="reportTheComment"
+        >提交</el-button>
+        <el-button v-else style="margin-right:8px;" type="danger" @click="reportTheReply">提交</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 
@@ -131,6 +183,7 @@ import Vue from "vue";
 import CommentInput from "@/components/CommentInput";
 import ReplyInput from "@/components/ReplyInput";
 import store from "@/store/index";
+import router from "@/router";
 export default {
   name: "TrendComment",
   data() {
@@ -140,6 +193,14 @@ export default {
       commentCount: null,
       commentsList: null,
       targetTrend: null,
+      orderByHot: true,
+      orderByDate: false,
+      dialogVisible: false,
+      textarea: "",
+      reportValue: null,
+      targetReportComment: null,
+      targetReportReply: null,
+      ofUser: null
     };
   },
   props: ["detailTrend"],
@@ -151,38 +212,158 @@ export default {
       return this.$store.state.user.userId;
     },
     trendId() {
-      if(this.detailTrend){
-        return this.detailTrend
-      }else{
-        return this.targetTrend
+      if (this.detailTrend) {
+        return this.detailTrend;
+      } else {
+        return this.targetTrend;
       }
+    },
+    reportType() {
+      return this.$store.state.user.reportType;
     }
   },
   methods: {
-    //显示回复输入框
-    showReplyInput(index, user, replyId, commentId, trendId) {
-      const inputArea = document.querySelector(
-        `.reply-input-container${index}`
-      );
-      if (!inputArea.firstChild) {
-        if (this.inputAreaIndex != null) {
-          const oldInputArea = document.querySelector(
-            `.reply-input-container${this.inputAreaIndex}`
-          );
-          oldInputArea.removeChild(oldInputArea.firstChild);
+    //查看更多评论
+    showMoreReply(index) {
+      document.querySelector(`#reply-container${index}`).style.maxHeight =
+        "none";
+      document.querySelector(`#two-more-message${index}`).style.display =
+        "none";
+    },
+    toDetailUserView(userId) {
+      this.$router.push({
+        name: "userView",
+        params: {
+          userId
         }
-        this.$nextTick(() => {
-          const myDiv = document.createElement("div");
-          myDiv.classList.add("test");
-          inputArea.appendChild(myDiv);
-          const ReplyInputComponent = Vue.extend(ReplyInput);
-          new ReplyInputComponent({ store }).$mount(".test");
-          this.inputAreaIndex = index;
+      });
+    },
+    //去举报回复
+    toReportTheReport(replyId, ofUser) {
+      this.targetReportReply = replyId;
+      this.ofUser = ofUser;
+      this.$refs.dialogContainer.classList.add("my-dialog-background");
+      this.dialogVisible = true;
+    },
+    closeReportBox() {
+      this.$refs.dialogContainer.classList.remove("my-dialog-background");
+      this.dialogVisible = false;
+    },
+    //举报评论
+    async reportTheComment() {
+      if (!this.reportValue) {
+        return this.$message({
+          type: "warning",
+          message: "你还没有选择违规类型"
         });
       }
-      setTimeout(() => {
-        this.$bus.$emit("trendReply", user, trendId, commentId, replyId);
-      }, 50);
+      if (this.textarea.trim() === "") {
+        return this.$message({
+          type: "warning",
+          message: "你还没有填写具体描述"
+        });
+      }
+      const reportMessage = {};
+      reportMessage.type = this.reportValue;
+      reportMessage.message = this.textarea.trim();
+      reportMessage.comment = this.targetReportComment;
+      reportMessage.ofUser = this.ofUser;
+      const ret = await this.$API.report.reportTheTrendComment(reportMessage);
+      if (ret.code === 200) {
+        this.reportValue = null;
+        this.dialogVisible = false;
+        this.textarea = "";
+        this.targetReportComment = null;
+        this.$refs.dialogContainer.classList.remove("my-dialog-background");
+        this.$message({
+          type: "success",
+          message: "举报成功"
+        });
+      }
+    },
+    //举报回复
+    async reportTheReply() {
+      if (!this.reportValue) {
+        return this.$message({
+          type: "warning",
+          message: "你还没有选择违规类型"
+        });
+      }
+      if (this.textarea.trim() === "") {
+        return this.$message({
+          type: "warning",
+          message: "你还没有填写具体描述"
+        });
+      }
+      const reportMessage = {};
+      reportMessage.type = this.reportValue;
+      reportMessage.message = this.textarea.trim();
+      reportMessage.reply = this.targetReportReply;
+      reportMessage.ofUser = this.ofUser;
+      const ret = await this.$API.report.reportTheTrendComment(reportMessage);
+      if (ret.code === 200) {
+        this.reportValue = null;
+        this.dialogVisible = false;
+        this.textarea = "";
+        this.targetReportReply = null;
+        this.$refs.dialogContainer.classList.remove("my-dialog-background");
+        this.$message({
+          type: "success",
+          message: "举报成功"
+        });
+      }
+    },
+    handleClose() {
+      this.dialogVisible = false;
+      this.$refs.dialogContainer.classList.remove("my-dialog-background");
+      this.textarea = "";
+      this.targetReportComment = null;
+      this.ofUser = null;
+      this.targetReportReply = null;
+      this.reportValue = null;
+    },
+    //去举报评论
+    toReportTheComment(commentId, ofUser) {
+      this.targetReportComment = commentId;
+      this.ofUser = ofUser;
+      this.$refs.dialogContainer.classList.add("my-dialog-background");
+      this.dialogVisible = true;
+    },
+    //显示回复输入框
+    showReplyInput(index, user, replyId, commentId, trendId, toReplyId) {
+      if (this.$store.state.user.userInfo._id) {
+        const inputArea = document.querySelector(
+          `.reply-input-container${index}`
+        );
+        if (!inputArea.firstChild) {
+          if (this.inputAreaIndex != null) {
+            const oldInputArea = document.querySelector(
+              `.reply-input-container${this.inputAreaIndex}`
+            );
+            oldInputArea.removeChild(oldInputArea.firstChild);
+          }
+          this.$nextTick(() => {
+            const myDiv = document.createElement("div");
+            myDiv.classList.add("test");
+            inputArea.appendChild(myDiv);
+            const ReplyInputComponent = Vue.extend(ReplyInput);
+            new ReplyInputComponent({ store, router }).$mount(".test");
+            this.inputAreaIndex = index;
+          });
+        }
+        setTimeout(() => {
+          this.$bus.$emit(
+            "trendReply",
+            user,
+            trendId,
+            commentId,
+            replyId,
+            toReplyId
+          );
+        }, 50);
+      } else {
+        this.$router.push("/login");
+      }
     },
     //回复点赞
     async kudosTheReply(replyId, ofUserId) {
@@ -193,7 +374,11 @@ export default {
           replyKudos.ofUser = ofUserId;
           const ret = await this.$API.comment.replyKudos(replyKudos);
           if (ret.code === 200) {
-            this.getComments();
+            if (this.orderByHot) {
+              this.getComments();
+            } else if (this.orderByDate) {
+              this.getCommentsListByDate();
+            }
           }
         } else {
           this.$router.push("/login");
@@ -205,7 +390,11 @@ export default {
           replyKudos.ofUser = ofUserId;
           const ret = await this.$API.trend.replyKudos(replyKudos);
           if (ret.code === 200) {
-            this.getComments();
+            if (this.orderByHot) {
+              this.getComments();
+            } else if (this.orderByDate) {
+              this.getCommentsListByDate();
+            }
           }
         } else {
           this.$router.push("/login");
@@ -221,7 +410,11 @@ export default {
           commentKudos.ofUser = ofUserId;
           const ret = await this.$API.comment.commentKudos(commentKudos);
           if (ret.code === 200) {
-            this.getComments();
+            if (this.orderByHot) {
+              this.getComments();
+            } else if (this.orderByDate) {
+              this.getCommentsListByDate();
+            }
           }
         } else {
           this.$router.push("/login");
@@ -233,7 +426,11 @@ export default {
           commentKudos.ofUser = ofUserId;
           const ret = await this.$API.trend.commentKudos(commentKudos);
           if (ret.code === 200) {
-            this.getComments();
+            if (this.orderByHot) {
+              this.getComments();
+            } else if (this.orderByDate) {
+              this.getCommentsListByDate();
+            }
           }
         } else {
           this.$router.push("/login");
@@ -248,7 +445,11 @@ export default {
           this.detailTrend
         );
         if (ret.code === 200) {
-          this.getComments();
+          if (this.orderByHot) {
+            this.getComments();
+          } else if (this.orderByDate) {
+            this.getCommentsListByDate();
+          }
           this.$message({
             type: "success",
             message: "删除成功"
@@ -261,7 +462,11 @@ export default {
           this.targetTrend
         );
         if (ret.code === 200) {
-          this.getComments();
+          if (this.orderByHot) {
+            this.getComments();
+          } else if (this.orderByDate) {
+            this.getCommentsListByDate();
+          }
           this.$message({
             type: "success",
             message: "删除成功"
@@ -310,74 +515,141 @@ export default {
     //删除回复
     async deleteOwnReply(replyId) {
       const ret = await this.$API.trend.deleteReply(replyId);
-        if (ret.code === 200) {
+      if (ret.code === 200) {
+        if (this.orderByHot) {
           this.getComments();
-          this.$message({
-            type: "success",
-            message: "删除成功"
-          });
+        } else if (this.orderByDate) {
+          this.getCommentsListByDate();
         }
+        this.$message({
+          type: "success",
+          message: "删除成功"
+        });
+      }
     },
     //获取评论
     async getComments(trendId) {
-      if(this.detailTrend){
+      if (this.detailTrend) {
         const ret = await this.$API.trend.getCommentList(
-        this.$route.params.trendId
-      );
-      if (ret.code === 200) {
-        this.commentCount = ret.totalNum;
-        this.commentsList = ret.comments;
-        if (ret.status) {
-          this.commentStatusArr = ret.status;
+          this.$route.params.trendId
+        );
+        if (ret.code === 200) {
+          this.commentCount = ret.totalNum;
+          this.commentsList = ret.comments;
+          if (ret.status) {
+            this.commentStatusArr = ret.status;
+          }
         }
-      }
-      }else if(this.targetTrend){
-        const ret = await this.$API.trend.getCommentList(
-        this.targetTrend
-      );
-      if (ret.code === 200) {
-        this.commentCount = ret.totalNum;
-        this.commentsList = ret.comments;
-        if (ret.status) {
-          this.commentStatusArr = ret.status;
+      } else if (this.targetTrend) {
+        const ret = await this.$API.trend.getCommentList(this.targetTrend);
+        if (ret.code === 200) {
+          this.commentCount = ret.totalNum;
+          this.commentsList = ret.comments;
+          if (ret.status) {
+            this.commentStatusArr = ret.status;
+          }
         }
-      }
       }
     },
-    orderByHot() {
+    async getCommentsListByDate() {
+      if (this.detailTrend) {
+        const ret = await this.$API.trend.getCommentsListByDate(
+          this.$route.params.trendId
+        );
+        if (ret.code === 200) {
+          this.commentCount = ret.totalNum;
+          this.commentsList = ret.comments;
+          if (ret.status) {
+            this.commentStatusArr = ret.status;
+          }
+        }
+      } else if (this.targetTrend) {
+        const ret = await this.$API.trend.getCommentsListByDate(
+          this.targetTrend
+        );
+        if (ret.code === 200) {
+          this.commentCount = ret.totalNum;
+          this.commentsList = ret.comments;
+          if (ret.status) {
+            this.commentStatusArr = ret.status;
+          }
+        }
+      }
+    },
+    orderByFav() {
+      this.commentStatusArr = null;
+      this.commentsList = null;
+      this.inputAreaIndex = null;
+      this.orderByHot = true;
+      this.orderByDate = false;
+      this.getComments();
       this.$refs.orderByTime.classList.remove("active");
       this.$refs.activeLineTwo.classList.remove("active-line-two");
       this.$refs.orderByHot.classList.add("active");
       this.$refs.activeLineOne.classList.add("active-line-one");
     },
     orderByTime() {
+      this.commentStatusArr = null;
+      this.commentsList = null;
+      this.inputAreaIndex = null;
+      this.orderByHot = false;
+      this.orderByDate = true;
+      this.getCommentsListByDate();
       this.$refs.orderByTime.classList.add("active");
       this.$refs.activeLineTwo.classList.add("active-line-two");
       this.$refs.orderByHot.classList.remove("active");
       this.$refs.activeLineOne.classList.remove("active-line-one");
     }
   },
-  created(){
+  created() {
     this.$bus.$off("showComment");
     this.$bus.$off("refComments");
   },
   mounted() {
     if (this.detailTrend) {
-      this.getComments();
+      if (this.orderByHot) {
+        this.getComments();
+      } else if (this.orderByDate) {
+        this.getCommentsListByDate();
+      }
     }
-    
+
     this.$bus.$on("showComment", trendId => {
       this.targetTrend = trendId;
-      this.getComments();
+      if (this.orderByHot) {
+        this.getComments();
+      } else if (this.orderByDate) {
+        this.getCommentsListByDate();
+      }
     });
     this.$bus.$on("refComments", () => {
-      this.getComments();
+      if (this.orderByHot) {
+        this.getComments();
+      } else if (this.orderByDate) {
+        this.getCommentsListByDate();
+      }
     });
   }
 };
 </script>
 
 <style lang='less' scoped>
+.el-dialog__wrapper {
+  overflow-y: hidden;
+}
+.my-dialog-container {
+  transition: all 0.2s;
+}
+.my-dialog-background {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.5;
+  background: #000;
+  z-index: 2000;
+}
 :deep(.el-textarea__inner::placeholder) {
   color: var(--theme_search_input_blue_color);
 }
@@ -438,7 +710,7 @@ export default {
       background-color: var(--theme_search_input_blue_color);
       position: absolute;
       left: 30px;
-      z-index: 1;
+      z-index: 0;
       display: inline-block;
     }
 
@@ -592,128 +864,147 @@ export default {
                 position: absolute;
                 border-radius: 6px;
                 right: -1px;
-                top: 30px;
-                width: 100px;
-                height: 60px;
+                top: 20px;
+                width: 80px;
+                height: 30px;
                 color: #222;
                 background-color: white;
                 box-shadow: 0 2px 3px 0 rgb(0 0 0 / 24%),
                   0 2px 5px 0 rgb(0 0 0 / 19%);
-                padding-top: 5px;
+                padding-top: 4px;
+                padding-left: 11px;
                 span {
                   font-size: 14px;
-                  width: 100%;
+                  width: 80px;
                   display: inline-block;
                   padding-left: 14px;
+                  color: #000000c3;
+                  font-weight: 600;
                 }
                 span:hover {
-                  background-color: whitesmoke;
                   color: var(--theme_search_input_blue_color);
                 }
               }
             }
           }
-          .reply-item {
-            max-width: 750px;
-            margin-bottom: 15px;
-            .reply-left {
-              float: left;
-              margin-right: 10px;
-              img {
-                width: 33px;
-                border-radius: 50%;
-                cursor: pointer;
-              }
-            }
-            .reply-right {
-              .reply-user-name {
-                margin-right: 0.7rem;
-              }
-              .reply-to {
-                cursor: pointer;
-                margin-right: 1rem;
-                color: var(--theme_search_input_blue_color);
-              }
-              .reply-item-bottom {
-                width: 100%;
-                overflow: hidden;
-                margin-top: 5px;
-                padding-left: 42px;
-                .reply-date {
-                  float: left;
-                }
-                .reply {
-                  float: left;
-                  margin-left: 20px;
+          .reply-container {
+            max-height: 129px;
+            overflow: hidden;
+            transition: height 0.3s;
+            .reply-item {
+              max-width: 750px;
+              margin-bottom: 15px;
+              .reply-left {
+                float: left;
+                margin-right: 10px;
+                img {
+                  width: 33px;
+                  border-radius: 50%;
                   cursor: pointer;
-                  transition: all 0.5s;
                 }
-                .reply:hover {
+              }
+              .reply-right {
+                .reply-user-name {
+                  margin-right: 0.7rem;
+                }
+                .reply-to {
+                  cursor: pointer;
+                  margin-right: 1rem;
                   color: var(--theme_search_input_blue_color);
                 }
-                .kudos {
-                  float: left;
-                  margin-left: 20px;
-                  cursor: pointer;
-                  i {
+                .reply-item-bottom {
+                  width: 100%;
+                  overflow: hidden;
+                  margin-top: 5px;
+                  padding-left: 42px;
+                  .reply-date {
+                    float: left;
+                  }
+                  .reply {
+                    float: left;
+                    margin-left: 20px;
+                    cursor: pointer;
                     transition: all 0.5s;
                   }
-                  .my-dianzan-icon {
+                  .reply:hover {
                     color: var(--theme_search_input_blue_color);
                   }
-                }
-                .kudos:hover > i {
-                  color: var(--theme_search_input_blue_color);
-                }
-                .reply-edit {
-                  right: 2px;
-                  position: absolute;
-                  cursor: pointer;
-                  i {
-                    opacity: 0;
-                    transition: all 0.5s;
-                  }
-                  i:hover {
-                    color: var(--theme_search_input_blue_color);
-                  }
-                  .to-edit-reply {
-                    display: none;
-                    z-index: 100;
-                    position: absolute;
-                    border-radius: 6px;
-                    right: -1px;
-                    top: 30px;
-                    width: 100px;
-                    height: 60px;
-                    color: #222;
-                    background-color: white;
-                    box-shadow: 0 2px 3px 0 rgb(0 0 0 / 24%),
-                      0 2px 5px 0 rgb(0 0 0 / 19%);
-                    padding-top: 5px;
-                    span {
-                      font-size: 14px;
-                      width: 100%;
-                      display: inline-block;
-                      padding-left: 14px;
+                  .kudos {
+                    float: left;
+                    margin-left: 20px;
+                    cursor: pointer;
+                    i {
+                      transition: all 0.5s;
                     }
-                    span:hover {
-                      background-color: whitesmoke;
+                    .my-dianzan-icon {
                       color: var(--theme_search_input_blue_color);
                     }
                   }
+                  .kudos:hover > i {
+                    color: var(--theme_search_input_blue_color);
+                  }
+                  .reply-edit {
+                    right: 2px;
+                    position: absolute;
+                    cursor: pointer;
+                    i {
+                      opacity: 0;
+                      transition: all 0.5s;
+                    }
+                    i:hover {
+                      color: var(--theme_search_input_blue_color);
+                    }
+                    .to-edit-reply {
+                      display: none;
+                      z-index: 100;
+                      position: absolute;
+                      border-radius: 6px;
+                      right: -1px;
+                      top: 20px;
+                      width: 80px;
+                      height: 30px;
+                      color: #222;
+                      background-color: white;
+                      box-shadow: 0 2px 3px 0 rgb(0 0 0 / 24%),
+                        0 2px 5px 0 rgb(0 0 0 / 19%);
+                      padding-top: 4px;
+                      padding-left: 11px;
+                      span {
+                        font-size: 14px;
+                        width: 80px;
+                        display: inline-block;
+                        padding-left: 14px;
+                        color: #000000c3;
+                        font-weight: 600;
+                      }
+                      span:hover {
+                        color: var(--theme_search_input_blue_color);
+                      }
+                    }
+                  }
                 }
               }
             }
+            // .reply-item:hover
+            //   > .reply-right
+            //   > .reply-item-bottom
+            //   > .reply-edit
+            //   > .my-edit-icon {
+            //   opacity: 1;
+            // }
+            .reply-item:hover :deep(.my-edit-icon) {
+              opacity: 1 !important;
+            }
           }
-          // .reply-item:hover
-          //   > .reply-right
-          //   > .reply-item-bottom
-          //   > .reply-edit
-          //   > .my-edit-icon {
-          //   opacity: 1;
-          // }
-          .reply-item:hover :deep(.my-edit-icon) {
-            opacity: 1 !important;
+
+          .two-more-message {
+            margin-top: 8px;
+            cursor: pointer;
+            transition: color 0.3s;
+            display: inline-block;
+            &:hover {
+              color: var(--theme_search_input_blue_color);
+            }
           }
 
           #reply-input-container {

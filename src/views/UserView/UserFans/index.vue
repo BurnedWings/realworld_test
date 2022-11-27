@@ -9,7 +9,7 @@
       <div v-for="(item,index) in fansList" :key="item._id" class="data-item">
         <div class="data-container">
           <div class="side-bar"></div>
-          <img @click="toUserView(item._id)" class="user-img" :src="item.image"></img>
+          <img @click="toUserView(item._id)" class="user-img" :src="$myBaseUrl+item.image"></img>
           <div class="message-container" >
             <span @click="toUserView(item._id)" class="user-name" >{{item.username}}</span>
             <div  class="user-bio" >{{item.bio}}</div>

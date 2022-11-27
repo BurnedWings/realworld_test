@@ -6,24 +6,42 @@
         <div class="data-item">
           <div class="data-container">
             <div class="side-bar"></div>
-            <img class="user-img" :src="message.user.image" />
+            <img class="user-img" :src="$myBaseUrl+message.user.image" />
             <div class="item-message-container">
               <span class="user-name">{{message.user.username}}</span>
               <span class="item-title">回复了你的评论</span>
               <br />
               <span class="user-bio">{{message.body}}</span>
             </div>
-            <div  v-if="message.comment" class="own-message">
+            <div v-if="message.comment&&message.toReplyId" class="own-message">
+              <span>{{message.toReplyId.body}}</span>
+            </div>
+            <div v-if="message.comment&&message.toReplyId===null" class="own-message">
               <span>{{message.comment.body}}</span>
             </div>
-            <div v-else class="own-message">
+            <div v-if="message.trendComment&&message.toReplyId" class="own-message">
+              <span>{{message.toReplyId.body}}</span>
+            </div>
+            <div v-if="message.trendComment&&message.toReplyId===null" class="own-message">
               <span>{{message.trendComment.body}}</span>
             </div>
           </div>
         </div>
         <div class="bottom-box">
           <div class="messageDate">{{$dayjs(message.createdAt).format("YYYY/MM/DD HH:mm")}}</div>
-          <div class="my-toReply">
+          <div
+            v-if="message.article"
+            @click="showComment(index,message.user._id,message.article,message.comment._id,true,message._id)"
+            class="my-toReply"
+          >
+            <i class="iconfont icon-taolun"></i>
+            回复
+          </div>
+          <div
+            v-if="message.trend"
+            @click="showComment(index,message.user._id,message.trend,message.trendComment._id,false,message._id)"
+            class="my-toReply"
+          >
             <i class="iconfont icon-taolun"></i>
             回复
           </div>
@@ -36,9 +54,7 @@
             点赞
           </div>
         </div>
-        <div id="my-message-comment-container" :class="'my-message-comment-container'+index">
-          <MessageInput></MessageInput>
-        </div>
+        <div id="my-message-comment-container" :class="'my-message-comment-container'+index"></div>
       </div>
     </div>
   </div>
@@ -47,24 +63,30 @@
 <script>
 import Vue from "vue";
 import store from "@/store/index";
-import MessageInput from '@/components/MessageInput'
+import MessageInput from "@/components/MessageInput";
 export default {
   name: "Reply",
-  components:{
+  components: {
     MessageInput
   },
   data() {
     return {
       messageList: null,
-      statusList:null
+      statusList: null,
+      commentAreaIndex: null
     };
   },
   methods: {
     async getMessage() {
       const ret = await this.$API.message.getMessage();
       if (ret.code === 200) {
+        if(ret.replyArr){
+         this.messageList = ret.replyArr;
+        this.statusList = ret.statusArr;
+        return 
+        }
         this.messageList = ret.retArr;
-        this.statusList = ret.statusArr
+        this.statusList = ret.statusArr;
       }
     },
     //点赞
@@ -79,17 +101,17 @@ export default {
         replyKudos.ofUser = ofUserId;
         const ret = await this.$API.comment.replyKudos(replyKudos);
         if (ret.code === 200) {
-          this.getMessage()
-          if(ret.cancel){
-           return this.$message({
-              type:'warning',
-              message:'已取消点赞！'
-            })
+          this.getMessage();
+          if (ret.cancel) {
+            return this.$message({
+              type: "warning",
+              message: "已取消点赞！"
+            });
           }
           this.$message({
-            type:'success',
-            message:'点赞成功！'
-          })
+            type: "success",
+            message: "点赞成功！"
+          });
         }
       } else {
         trend = trend.toString();
@@ -101,23 +123,75 @@ export default {
         replyKudos.ofUser = ofUserId;
         const ret = await this.$API.trend.replyKudos(replyKudos);
         if (ret.code === 200) {
-          this.getMessage()
-          if(ret.cancel){
-           return this.$message({
-              type:'warning',
-              message:'已取消点赞！'
-            })
+          this.getMessage();
+          if (ret.cancel) {
+            return this.$message({
+              type: "warning",
+              message: "已取消点赞！"
+            });
           }
           this.$message({
-            type:'success',
-            message:'点赞成功！'
-          })
+            type: "success",
+            message: "点赞成功！"
+          });
         }
+      }
+    },
+    showComment(index, replyId, articleOrTrend, commentOrTrendComment, is,toReplyId) {
+      
+      const commentArea = document.querySelector(
+        `.my-message-comment-container${index}`
+      );
+      // if (!commentArea.firstChild) {
+      // }
+      if (this.commentAreaIndex != null) {
+        const oldCommentArea = document.querySelector(
+          `.my-message-comment-container${this.commentAreaIndex}`
+        );
+        oldCommentArea.removeChild(oldCommentArea.firstChild);
+      }
+      this.$nextTick(() => {
+        const myDiv = document.createElement("div");
+        myDiv.classList.add("test");
+        commentArea.appendChild(myDiv);
+        const CommentComponent = Vue.extend(MessageInput);
+        new CommentComponent({ store }).$mount(".test");
+        this.commentAreaIndex = index;
+      });
+      if (is) {
+        setTimeout(() => {
+          this.$bus.$emit(
+            "myFocus",
+            articleOrTrend,
+            commentOrTrendComment,
+            replyId,
+            toReplyId
+          );
+        }, 50);
+      } else {
+        setTimeout(() => {
+          this.$bus.$emit(
+            "reply",
+            articleOrTrend,
+            commentOrTrendComment,
+            replyId,
+            toReplyId
+          );
+        }, 50);
+      }
+    },
+    async changeUnCheckedReply(){
+      const ret = await this.$API.message.changeUnCheckedReply()
+      if(ret.code===200){
+        this.$store.dispatch("getTotalCount");
       }
     }
   },
   mounted() {
     this.getMessage();
+    if(this.$store.state.user.replyCount>0){
+      this.changeUnCheckedReply()
+    }
   }
 };
 </script>
@@ -139,8 +213,8 @@ export default {
     margin-bottom: 10px;
     border-radius: 5px;
     box-shadow: 0 1px 3px 0 rgb(0 0 0 / 24%), 0 3px 5px 0 rgb(0 0 0 / 19%);
-    transition: all 0.3s;
-    cursor: default;;
+    transition: background-color 0.3s;
+    cursor: default;
   }
   .right-main {
     width: 100%;
@@ -148,7 +222,7 @@ export default {
     overflow-y: auto;
     background-color: var(--theme_inner_bg_color);
     border-radius: 5px;
-    transition: all 0.3s;
+    transition: background-color 0.3s;
     box-shadow: 0 3px 5px 0 rgb(0 0 0 / 24%), 0 5px 5px 0 rgb(0 0 0 / 19%);
     .main-item {
       margin-top: 20px;
@@ -166,9 +240,9 @@ export default {
       }
       .data-item {
         margin-bottom: 0px;
-        transition: all 0.4s;
+        // transition: all 0.4s;
         .data-container {
-          transition: all 0.5s;
+          // transition: all 0.5s;
           font-weight: 600;
           position: relative;
           height: 70px;
@@ -239,7 +313,7 @@ export default {
             .user-name {
               font-weight: 600;
               cursor: pointer;
-              transition: color 0.4s;
+              // transition: color 0.4s;
               margin-left: 2px;
               &:hover {
                 color: var(--theme_search_input_blue_color);

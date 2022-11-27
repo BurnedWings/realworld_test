@@ -9,6 +9,7 @@ import * as comment from '@/api/product/comment'
 import * as collection from '@/api/product/collection'
 import * as trend from '@/api/product/trend'
 import * as message from '@/api/product/message'
+import * as report from '@/api/product/report'
 
 export default {
     user,
@@ -18,5 +19,6 @@ export default {
     comment,
     collection,
     trend,
-    message
+    message,
+    report
 }

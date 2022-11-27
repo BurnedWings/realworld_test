@@ -1,6 +1,6 @@
 <template>
   <div class="about-view">
-    <div class="title">关于我</div>
+    <div class="title">关于本站</div>
     <div class="line"></div>
   </div>
 </template>

@@ -1,7 +1,7 @@
 <template>
   <div class="comment-input">
     <div class="user-img">
-      <img :src="userInfo.image" alt />
+      <img @click="toDetailUserView" :src="$myBaseUrl+userInfo.image" alt />
     </div>
     <el-input
       ref="replyTextarea"
@@ -40,7 +40,8 @@ export default {
       toCommentId: "",
       toUser: "",
       articleId: "",
-      trendId: null
+      trendId: null,
+      toReplyOwnId:null
     };
   },
   computed: {
@@ -49,6 +50,14 @@ export default {
     }
   },
   methods: {
+    toDetailUserView(){
+      this.$router.push({
+        name: "userView",
+        params: {
+          userId:this.userInfo._id
+        }
+      });
+    },
     loadEmojis() {
       for (let i in appData) {
         this.faceList.push(appData[i].char);
@@ -56,6 +65,13 @@ export default {
     },
     //提交评论
     async commitReply() {
+      if (this.$store.state.user.userInfo.status === 1) {
+        this.textarea = ''
+        return this.$message({
+          message: "你已被禁言十天，到期后自动解除",
+          type: "error"
+        });
+      }
       if (this.userInfo._id) {
         if (!this.trendId) {
           if (this.textarea) {
@@ -66,6 +82,8 @@ export default {
             reply.comment = this.toCommentId;
             if (this.toReplyId) {
               reply.toReply = this.toReplyId;
+              reply.toReplyId = this.toReplyOwnId
+              
             }
             const ret = await this.$API.comment.createReply(reply);
             if (ret.code === 200) {
@@ -93,6 +111,7 @@ export default {
             reply.trendComment = this.toCommentId;
             if (this.toReplyId) {
               reply.toReply = this.toReplyId;
+              reply.toReplyId = this.toReplyOwnId
             }
             const ret = await this.$API.trend.createTrendReply(reply);
             if (ret.code === 200) {
@@ -131,20 +150,22 @@ export default {
     this.$bus.$off("trendReply");
   },
   mounted() {
-    this.$bus.$on("myFocus", (user, articleId, commentId, replyId) => {
+    this.$bus.$on("myFocus", (user, articleId, commentId, replyId,toReplyId) => {
       this.toCommentId = commentId;
       this.toReplyId = replyId;
       this.articleId = articleId;
       this.toUser = user;
+      this.toReplyOwnId = toReplyId
       this.$nextTick(() => {
         this.$refs.replyTextarea.focus();
       });
     });
-    this.$bus.$on("trendReply", (user, trendId, commentId, replyId) => {
+    this.$bus.$on("trendReply", (user, trendId, commentId, replyId,toReplyId) => {
       this.toCommentId = commentId;
       this.toReplyId = replyId;
       this.trendId = trendId;
       this.toUser = user;
+      this.toReplyOwnId = toReplyId
       this.$nextTick(() => {
         this.$refs.replyTextarea.focus();
       });

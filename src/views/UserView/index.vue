@@ -6,16 +6,29 @@
         <div class="navbar-bottom">
           <transition name="infoTransition">
             <div v-if="isShowUserInfoNav" class="userInfo-container">
-              <img @click="toTop" :src="oneUserInfo.image" alt />
-              <span @click="toTop" >{{ oneUserInfo.username }}</span>
+              <img v-if="oneUserInfo.image" @click="toTop" :src="$myBaseUrl+oneUserInfo.image" alt />
+              <span @click="toTop">{{ oneUserInfo.username }}</span>
             </div>
           </transition>
-          <ul>
-            <li @click="$router.push({ name: 'userArticle' })">文章</li>
-            <li @click="$router.push({ name: 'userTrends' })">动态</li>
-            <li @click="$router.push({ name: 'userConcern' })">关注</li>
-            <li @click="$router.push({ name: 'userFans' })">粉丝</li>
-            <li @click="$router.push({ name: 'userInfo',params:{oneUserInfo} })">个人资料</li>
+          <ul class="router-nav">
+            <li>
+              <router-link :to="{name:'userArticle'}" exact>文章</router-link>
+            </li>
+            <li v-if="isLoginUser">
+              <router-link :to="{name:'auditIng'}" exact>待审核</router-link>
+            </li>
+            <li>
+              <router-link :to="{name:'userTrends'}" exact>动态</router-link>
+            </li>
+            <li>
+              <router-link :to="{name:'userConcern'}" exact>关注</router-link>
+            </li>
+            <li>
+              <router-link :to="{name:'userFans'}" exact>粉丝</router-link>
+            </li>
+            <li>
+              <router-link :to="{name:'userInfo',params:{oneUserInfo} }" exact>个人资料</router-link>
+            </li>
           </ul>
         </div>
         <div class="line"></div>
@@ -23,7 +36,7 @@
       <div class="main-container">
         <div class="left-part">
           <div class="img-container">
-            <img :src="oneUserInfo.image" alt />
+            <img v-if="oneUserInfo.image" :src="$myBaseUrl+oneUserInfo.image" alt />
           </div>
           <div class="easyMessageBox">
             <div
@@ -55,7 +68,9 @@
           </div>
         </div>
         <div class="right-part">
-          <router-view></router-view>
+          <transition name="fade-transform" mode="out-in">
+            <router-view></router-view>
+          </transition>
         </div>
       </div>
     </div>
@@ -73,6 +88,7 @@ export default {
       isConcern: null
     };
   },
+
   methods: {
     updateHeaderStyle() {
       headerNav.style.position = "absolute";
@@ -119,13 +135,15 @@ export default {
     },
     //获取关注状态
     async getConcernStatus() {
-      const ret = await this.$API.user.getConcernStatus(this.userId);
-      if (ret.code === 200) {
-        this.isConcern = ret.isConcern;
+      if (this.$store.state.user.userInfo._id) {
+        const ret = await this.$API.user.getConcernStatus(this.userId);
+        if (ret.code === 200) {
+          this.isConcern = ret.isConcern;
+        }
       }
     },
-    toTop(){
-      window.scrollTo(0,0)
+    toTop() {
+      window.scrollTo(0, 0);
     }
   },
   computed: {
@@ -139,6 +157,14 @@ export default {
   watch: {
     isLoginUser() {
       this.getUserViewInfo();
+    },
+    $route(to, from) {
+      if (this.$route.params.userId) {
+        this.getUserViewInfo();
+        if (this.$store.state.user.userInfo._id) {
+          this.getConcernStatus();
+        }
+      }
     }
   },
   mounted() {
@@ -157,10 +183,11 @@ export default {
 };
 </script>
 
-<style lang="less">
+<style lang="less" scoped>
 .user-view {
-  min-width: 954px;
-  height: 100%;
+  min-width: 1531px;
+  min-height: 100vh;
+  background-color: var(--theme_userView);
   position: relative;
   .userHeader {
     transition: all 0.5s;
@@ -170,7 +197,6 @@ export default {
   }
   .user-container {
     transition: all 0.5s;
-    width: 100%;
     background-color: var(--theme_userView);
     .navbar-container {
       z-index: 1;
@@ -178,14 +204,26 @@ export default {
       transition: all 0.5s;
       width: 100%;
       height: 72px;
-      position: sticky;
+      position: sticky !important;
       top: -24px;
       .navbar-bottom {
-        transition: all 0.5s;
         position: absolute;
         bottom: 0px;
         width: 100%;
         height: 31px;
+
+        .router-nav {
+          font-weight: 600;
+          .router-link-active {
+            color: var(--theme_search_input_blue_color);
+          }
+          a {
+            transition: all 0.3s;
+          }
+          a:hover {
+            color: var(--theme_search_input_blue_color);
+          }
+        }
 
         .infoTransition-enter-active,
         .infoTransition-leave-active {
@@ -239,10 +277,18 @@ export default {
       }
     }
     .main-container {
-      width: 80%;
+      width: 1225px;
       margin: 20px auto;
+      &:after {
+        /*伪元素是行内元素 正常浏览器清除浮动方法*/
+        content: "";
+        display: block;
+        height: 0;
+        clear: both;
+        visibility: hidden;
+      }
       .left-part {
-        width: 23%;
+        width: 281px;
         height: 100%;
         float: left;
         margin-right: 10px;
@@ -290,7 +336,7 @@ export default {
         }
       }
       .right-part {
-        width: 75%;
+        width: 918px;
         min-height: 609px;
         float: right;
         padding-left: 10px;

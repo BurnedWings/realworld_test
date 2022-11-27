@@ -190,10 +190,19 @@ export default {
         this.collectionList = ret.collectionList;
         this.userCollectionId = ret.userCollectionId;
         if (this.selectedCollectionId) {
-          const res = await this.$API.collection.getArticle(
+          let res;
+          if (this.articleList.length === 1 && this.currentPage != 1) {
+            res = await this.$API.collection.getArticle(
             this.selectedCollectionId,
-            this.currentPage
+            this.currentPage-1
           );
+          } else {
+            res = await this.$API.collection.getArticle(
+              this.selectedCollectionId,
+              this.currentPage
+            );
+          }
+
           if (res.code === 200) {
             if (res.articleList.length === 0) {
               this.hasNotArticle = true;
@@ -224,11 +233,18 @@ export default {
       document.querySelector(".search-input-title").style.color = "#757575";
     },
     toCreateCollection() {
-      this.isCreate = true;
-      this.dialogTableVisible = true;
-      this.$nextTick(() => {
-        this.$refs.searchInput.focus();
-      });
+      if (this.collectionList.length > 19) {
+        this.$message({
+          type: "error",
+          message: "饱意思，你创建的收藏夹太多了~"
+        });
+      } else {
+        this.isCreate = true;
+        this.dialogTableVisible = true;
+        this.$nextTick(() => {
+          this.$refs.searchInput.focus();
+        });
+      }
     },
     async createCollection() {
       if (this.isCreate) {
@@ -342,7 +358,7 @@ export default {
     },
     removeDialogClose() {
       this.toRemoveDialog = false;
-      this.preEditBox = null
+      this.preEditBox = null;
     },
     //移除文章
     async removeTheArticle() {
@@ -352,13 +368,12 @@ export default {
       const ret = await this.$API.collection.removeArticle(collection);
       if (ret.code === 200) {
         this.toRemoveDialog = false;
-        
         this.getCollectionList();
       }
     },
     //打开移动对话框
     openToRemoveToDialog(articleId) {
-      this.toOperateArticle = articleId
+      this.toOperateArticle = articleId;
       this.removeToDialog = true;
       this.$nextTick(() => {
         this.isShowDialogButton = true;
@@ -381,26 +396,26 @@ export default {
     },
     //移动文章到指定收藏夹
     async removeTheArticleTo() {
-      const collection = {}
-      collection.article = this.toOperateArticle
-      collection.ofCollection = this.selectedCollectionId
-      if(this.removeTargetCollection){
-        collection.targetCollection = this.removeTargetCollection._id
-      }else {
+      const collection = {};
+      collection.article = this.toOperateArticle;
+      collection.ofCollection = this.selectedCollectionId;
+      if (this.removeTargetCollection) {
+        collection.targetCollection = this.removeTargetCollection._id;
+      } else {
         return this.$message({
-          type:'warning',
-          message:'你还没有选择要移动的收藏夹哦'
-        })
+          type: "warning",
+          message: "你还没有选择要移动的收藏夹哦"
+        });
       }
-      const ret = await this.$API.collection.removeArticleTo(collection)
-      if(ret.code===200){
-        this.removeToDialog = false
-        
-        this.getCollectionList()
+      const ret = await this.$API.collection.removeArticleTo(collection);
+      if (ret.code === 200) {
+        this.removeToDialog = false;
+
+        this.getCollectionList();
         this.$message({
-          type:'success',
-          message:'操作成功'
-        })
+          type: "success",
+          message: "操作成功"
+        });
       }
     },
     //获取目标收藏夹
@@ -411,7 +426,7 @@ export default {
     closeTheRemoveToDialog() {
       this.isShowDialogButton = true;
       this.removeTargetCollection = null;
-      this.preEditBox = null
+      this.preEditBox = null;
     }
   },
   created() {
@@ -423,7 +438,7 @@ export default {
 <style lang="less" scoped>
 .collection-view {
   min-width: 1531px;
-  min-height: 745px;
+  min-height: 100vh;
   padding-top: 100px;
   transition: all 0.3s;
   background-color: var(--theme_outer_bg_color);
@@ -557,7 +572,7 @@ export default {
             }
             .data-title:hover {
               background-color: var(--theme_search_data_title_hover_bg);
-              color: rgb(48, 169, 222);
+              color: var(--theme_search_input_blue_color);
             }
 
             .data-description {
@@ -585,7 +600,6 @@ export default {
                 right: 10px;
                 width: 85px;
                 height: 60px;
-                color: rgba(34, 34, 34, 0.785);
                 background-color: white;
                 box-shadow: 0 2px 3px 0 rgb(0 0 0 / 24%),
                   0 2px 5px 0 rgb(0 0 0 / 19%);
@@ -596,6 +610,8 @@ export default {
                   display: inline-block;
                   padding-left: 14px;
                   cursor: pointer;
+                  font-weight: 600;
+                  color: #000000c3;
                 }
                 span:hover {
                   background-color: whitesmoke;
@@ -620,7 +636,7 @@ export default {
       color: var(--theme_font_color);
     }
   }
-  .my-delete-dialog :deep(.el-dialog){
+  .my-delete-dialog :deep(.el-dialog) {
     min-height: 150px;
   }
   .my-rm-dialog {

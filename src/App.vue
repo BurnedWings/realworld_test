@@ -1,7 +1,9 @@
 <template>
   <div class="outer">
     <Header></Header>
-    <router-view key="key"></router-view>
+    <transition name="fade-transform" mode="out-in">
+      <router-view key="key"></router-view>
+      </transition>
     <Footer></Footer>
   </div>
 </template>
@@ -22,6 +24,23 @@ export default {
   mounted() {}
 };
 </script>
+<style >
+/* fade-transform */
+.fade-transform-leave-active,
+.fade-transform-enter-active {
+  transition: all .5s;
+}
+
+.fade-transform-enter {
+  opacity: 0;
+  transform: translateX(-30px);
+}
+
+.fade-transform-leave-to {
+  opacity: 0;
+  transform: translateX(30px);
+}
+</style>
 <style lang="less">
 :root {
   // //外背景
@@ -37,10 +56,17 @@ export default {
   --theme_search_input_blue_color: rgb(66, 133, 244);
 }
 
+body {
+  background-color: var(--theme_outer_bg_color) !important;
+  // overflow-x: hidden;
+}
+
+
+
 /* 滚动条整体部分 */
 ::-webkit-scrollbar {
   width: 5px;
-  height: 5px;
+  height: 0px;
 }
 /* 外层轨道 */
 ::-webkit-scrollbar-track {
@@ -63,6 +89,7 @@ export default {
 .outer {
   clear: both;
   color: var(--theme_font_color);
+
   a {
     text-decoration: none;
     color: inherit; //设置为继承父元素颜色
@@ -78,7 +105,7 @@ export default {
 
   a:hover {
     text-decoration: none;
-    color: rgb(48, 169, 222) !important;
+    color: var(--theme_search_input_blue_color) !important;
   }
 
   a:active {
@@ -99,5 +126,4 @@ export default {
 .outer::after {
   clear: both;
 }
-
 </style>

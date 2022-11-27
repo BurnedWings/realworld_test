@@ -3,6 +3,9 @@ import request from "../request";
 //获取评论列表
 export const getCommentsList = (articleId) => request({url:'/comments/getComments',method:'post',data:{articleId}})
 
+//获取评论列表(date)
+export const getCommentsListByDate = (articleId) => request({url:'/comments/getCommentsByDate',method:'post',data:{articleId}})
+
 //创建评论
 export const createComment = (comment) => request({url:'/comments/createComment',method:'post',data:{comment}})
 

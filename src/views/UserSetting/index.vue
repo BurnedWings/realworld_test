@@ -14,24 +14,26 @@
         <img id="myImage" :src="updateUrl" alt="" />
       </div>
       <div class="edit-button" @click="sendAvatar">Set new profile picture</div>
-    </div> -->
+    </div>-->
     <EditPicture></EditPicture>
     <div class="setting-container">
       <div class="my-navbar">
-        <img id="edit-image" :src="avatar" alt="" />
+        <img v-if="avatar" id="edit-image" :src="$myBaseUrl+avatar" alt />
         <span class="user-name">{{ username }}</span>
         <span class="message">Your personal account</span>
         <button
           @click="toUserView"
           type="button"
           class="btn btn-outline-secondary btn-sm"
-        >
-          Go to your personal profile
-        </button>
+        >Go to your personal profile</button>
       </div>
-      <LeftPart></LeftPart>
+      <transition name="fade-transform" mode="out-in">
+        <LeftPart></LeftPart>
+      </transition>
       <div class="right-part">
-        <router-view></router-view>
+        <transition name="fade-transform" mode="out-in">
+          <router-view></router-view>
+        </transition>
       </div>
     </div>
   </div>
@@ -39,7 +41,7 @@
 
 <script>
 import LeftPart from "./LeftPart";
-import EditPicture from '@/components/EditPicture'
+import EditPicture from "@/components/EditPicture";
 // import "cropperjs/dist/cropper.css";
 // import Cropper from "cropperjs";
 export default {
@@ -64,7 +66,7 @@ export default {
     },
     avatar() {
       return this.$store.state.user.userInfo.image;
-    },
+    }
   },
   methods: {
     // initCropper(image) {
@@ -110,7 +112,7 @@ export default {
     // },
     toUserView() {
       this.$router.push(`/userView/${this.userId}`);
-    },
+    }
     // showEditView() {
     //   const hei = document.body.clientHeight;
     //   const searchBackground = document.querySelector(
@@ -154,7 +156,7 @@ export default {
     //   this.showEditView();
     //   this.updateUrl = data;
     // });
-  },
+  }
 };
 </script>
 
@@ -172,9 +174,11 @@ export default {
 }
 
 .setting-view {
+  display: flex;
+  justify-content: center;
   transition: all 0.5s;
   background-color: var(--theme_outer_bg_color);
-  min-height: 745px;
+  min-height: 800px;
   // .editBackground-container {
   //   opacity: 0;
   //   width: 100%;

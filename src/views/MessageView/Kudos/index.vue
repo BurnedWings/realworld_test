@@ -6,26 +6,26 @@
         <div class="data-item">
           <div class="data-container">
             <div class="side-bar"></div>
-            <img class="user-img" :src="kudos.user.image" />
+            <img class="user-img" :src="$myBaseUrl+kudos.user.image" />
             <div class="item-message-container">
               <span class="user-name">{{kudos.user.username}}</span>
-              <span class="item-title" v-if="kudos.article" >点赞了你的文章</span>
-              <span class="item-title" v-if="kudos.trend" >点赞了你的动态</span>
-              <span class="item-title" v-if="kudos.comment" >点赞了你的评论</span>
-              <span class="item-title" v-if="kudos.reply" >点赞了你的评论</span>
-              <span class="item-title" v-if="kudos.trendComment" >点赞了你的评论</span>
-              <span class="item-title" v-if="kudos.trendReply" >点赞了你的评论</span>
+              <span class="item-title" v-if="kudos.article">点赞了你的文章</span>
+              <span class="item-title" v-if="kudos.trend">点赞了你的动态</span>
+              <span class="item-title" v-if="kudos.comment">点赞了你的评论</span>
+              <span class="item-title" v-if="kudos.reply">点赞了你的评论</span>
+              <span class="item-title" v-if="kudos.trendComment">点赞了你的评论</span>
+              <span class="item-title" v-if="kudos.trendReply">点赞了你的评论</span>
               <br />
               <span class="user-bio">{{$dayjs(kudos.createdAt).format("YYYY/MM/DD HH:mm")}}</span>
             </div>
-            <div  class="own-message">
-              <span v-if="kudos.article" >{{kudos.article.title}}</span>
-              <span v-if="kudos.trend" >{{kudos.trend.body}}</span>
-              
-              <span v-if="kudos.comment" >{{kudos.comment.body}}</span>
-              <span v-if="kudos.reply" >{{kudos.reply.body}}</span>
-              <span v-if="kudos.trendComment" >{{kudos.trendComment.body}}</span>
-              <span v-if="kudos.trendReply" >{{kudos.trendReply.body}}</span>
+            <div class="own-message">
+              <span v-if="kudos.article">{{kudos.article.title}}</span>
+              <span v-if="kudos.trend">{{kudos.trend.body}}</span>
+
+              <span v-if="kudos.comment">{{kudos.comment.body}}</span>
+              <span v-if="kudos.reply">{{kudos.reply.body}}</span>
+              <span v-if="kudos.trendComment">{{kudos.trendComment.body}}</span>
+              <span v-if="kudos.trendReply">{{kudos.trendReply.body}}</span>
             </div>
           </div>
         </div>
@@ -37,21 +37,31 @@
 <script>
 export default {
   name: "Kudos",
-  data(){
-    return{
-      kudosList:null
-    }
+  data() {
+    return {
+      kudosList: null
+    };
   },
-  methods:{
-    async getKudos(){
-      const ret = await this.$API.message.getKudos()
+  computed: {},
+  methods: {
+    async getKudos() {
+      const ret = await this.$API.message.getKudos();
+      if (ret.code === 200) {
+        this.kudosList = ret.kudosArr;
+      }
+    },
+    async changeUnCheckedKudos(){
+      const ret = await this.$API.message.changeUnCheckedKudos()
       if(ret.code===200){
-        this.kudosList = ret.kudosArr
+        this.$store.dispatch("getTotalCount");
       }
     }
   },
-  mounted(){
-    this.getKudos()
+  mounted() {
+    this.getKudos();
+    if(this.$store.state.user.kudos>0){
+      this.changeUnCheckedKudos()
+    }  
   }
 };
 </script>
@@ -73,7 +83,7 @@ export default {
     margin-bottom: 10px;
     border-radius: 5px;
     box-shadow: 0 1px 3px 0 rgb(0 0 0 / 24%), 0 3px 5px 0 rgb(0 0 0 / 19%);
-    transition: all 0.3s;
+    transition: background-color 0.3s;
   }
   .right-main {
     width: 100%;
@@ -81,7 +91,7 @@ export default {
     overflow-y: auto;
     background-color: var(--theme_inner_bg_color);
     border-radius: 5px;
-    transition: all 0.3s;
+    transition: background-color 0.3s;
     box-shadow: 0 3px 5px 0 rgb(0 0 0 / 24%), 0 5px 5px 0 rgb(0 0 0 / 19%);
     .main-item {
       margin-top: 20px;
@@ -95,9 +105,9 @@ export default {
       }
       .data-item {
         margin-bottom: 0px;
-        transition: all 0.4s;
+        // transition: all 0.4s;
         .data-container {
-          transition: all 0.5s;
+          // transition: all 0.5s;
           font-weight: 600;
           position: relative;
           height: 70px;
@@ -168,7 +178,7 @@ export default {
             .user-name {
               font-weight: 600;
               cursor: pointer;
-              transition: color 0.4s;
+              // transition: color 0.4s;
               margin-left: 2px;
               &:hover {
                 color: var(--theme_search_input_blue_color);
