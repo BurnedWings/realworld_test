@@ -225,6 +225,9 @@ export default {
 }
 </style>
 <style lang="less" scoped>
+.el-dialog__wrapper {
+  overflow-y: hidden;
+}
 .trendView {
   transition: all 0.5s;
   min-width: 1531px;
