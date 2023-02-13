@@ -39,7 +39,7 @@
 <script>
 import Vue from "vue";
 import store from "@/store/index";
-import MessageInput from "@/components/MessageInput";
+const MessageInput = () => import("@/components/MessageInput");
 export default {
   name: "AboutArticle",
   data() {
@@ -50,6 +50,7 @@ export default {
     };
   },
   methods: {
+    //获取文章评论
     async getArticleComment() {
       const ret = await this.$API.message.getArticleComment();
       if (ret.code === 200) {
@@ -57,6 +58,7 @@ export default {
         this.commentStatusArr = ret.commentStatusArr;
       }
     },
+    //点赞文章评论
     async kudosTheComment(commentId, ofUserId) {
       const commentKudos = {};
       commentKudos.comment = commentId;

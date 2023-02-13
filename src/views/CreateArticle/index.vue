@@ -2,17 +2,17 @@
   <div class="my-create-view">
     <div class="edit-view">
       <transition name="fade-transform" mode="out-in">
-         <Editor
-        :initialValue="editorText"
-        height="510px"
-        ref="toastuiEditor"
-        language="zh_CN"
-        @blur="getHtml"
-        :options="editorOptions"
-        initialEditType="wysiwyg"
-        previewStyle="vertical"
-      />
-    </transition>
+        <Editor
+          :initialValue="editorText"
+          height="510px"
+          ref="toastuiEditor"
+          language="zh_CN"
+          @blur="getHtml"
+          :options="editorOptions"
+          initialEditType="wysiwyg"
+          previewStyle="vertical"
+        />
+      </transition>
     </div>
     <div class="article-message">
       <el-form
@@ -134,14 +134,13 @@ export default {
         callback();
       }
     };
-
     return {
       editorText: "",
       tagInput: "",
       isTagInputShow: false,
       isTagButtonShow: true,
       editorOptions: {
-        hideModeSwitch: false,
+        minHeight: "200px",
         language: "zh-CN"
       },
       articleMessage: {
@@ -319,7 +318,7 @@ export default {
       }
     },
     async getDetailArticle(articleId) {
-      const ret = await this.$API.article.getDetailArticle(articleId);
+      const ret = await this.$API.article.getToEditDetailArticle(articleId);
       if (ret.code === 200) {
         this.editorText = this.$refs.toastuiEditor.invoke(
           "setHTML",
@@ -331,7 +330,9 @@ export default {
       }
     },
     async getNotAuditAndBackArticleDetail(articleId) {
-      const ret = await this.$API.article.getNotAuditAndBackArticleDetail(articleId);
+      const ret = await this.$API.article.getNotAuditAndBackArticleDetail(
+        articleId
+      );
       if (ret.code === 200) {
         this.editorText = this.$refs.toastuiEditor.invoke(
           "setHTML",
@@ -358,9 +359,13 @@ export default {
         message: "移除成功"
       });
       this.imageUrl = null;
+    },
+    async getArticleType() {
+      await this.$store.dispatch("getArticleType");
     }
   },
   mounted() {
+    this.getArticleType();
     this.myImgUpload();
     if (this.$route.params.isNotAudit) {
       if (this.$route.params.articleId) {

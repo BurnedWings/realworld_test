@@ -34,11 +34,12 @@
         <div class="article-container">
           <div v-for="(article,index) in articleList" :key="article._id" class="article-item">
             <div class="data-item">
-              <div @click="toDetailArticle(article.article._id)" class="data-title">
+              <div @click="toDetailArticle(article.article)" class="data-title">
                 <div class="side-bar"></div>
-                <div class="title-content">{{article.article.title}}</div>
+                <div v-if="article.article" class="title-content">{{article.article.title}}</div>
+                <div v-else class="title-content">该文章已被作者删除</div>
               </div>
-              <div class="data-description">
+              <div v-if="article.article" class="data-description">
                 {{article.article.description}}
                 <i
                   @click="toEditCollectionArticle(index)"
@@ -48,6 +49,13 @@
                   <span @click="openToRemoveToDialog(article.article._id)">移动到</span>
                   <br />
                   <span @click="openToRemoveDialog(article.article._id)">移除</span>
+                </div>
+              </div>
+              <div v-else class="data-description">
+                该文章已被作者删除
+                <i @click="toEditCollectionArticle(index)" class="myIcon el-icon-more"></i>
+                <div ref="editBox" @mouseleave="closeEditBox(index)" class="to-edit-reply">
+                  <span @click="openToRemoveDialog(null,article._id)">移除</span>
                 </div>
               </div>
             </div>
@@ -180,10 +188,12 @@ export default {
       currentPage: 1,
       removeToDialog: false,
       removeTargetCollection: null,
-      isShowDialogButton: false
+      isShowDialogButton: false,
+      toOperateCollectionItem: null
     };
   },
   methods: {
+    //获取收藏夹列表
     async getCollectionList() {
       const ret = await this.$API.collection.getCollectionList();
       if (ret.code === 200) {
@@ -193,9 +203,9 @@ export default {
           let res;
           if (this.articleList.length === 1 && this.currentPage != 1) {
             res = await this.$API.collection.getArticle(
-            this.selectedCollectionId,
-            this.currentPage-1
-          );
+              this.selectedCollectionId,
+              this.currentPage - 1
+            );
           } else {
             res = await this.$API.collection.getArticle(
               this.selectedCollectionId,
@@ -301,6 +311,7 @@ export default {
     closedDialog() {
       this.isCreate = null;
     },
+    //切换收藏夹
     async showArticle(collectionId) {
       this.selectedCollectionId = collectionId;
       this.hasNotArticle = null;
@@ -313,13 +324,15 @@ export default {
         this.totalArticle = ret.total;
       }
     },
-    toDetailArticle(articleId) {
-      this.$router.push({
+    toDetailArticle(article) {
+      if(article){
+        this.$router.push({
         name: "detailArticle",
         params: {
-          articleId
+          articleId:article._id
         }
       });
+      }
     },
     //打开删除提示界面
     toDeleteCollection(collectionId) {
@@ -357,18 +370,36 @@ export default {
       this.$refs.editBox[index].style.display = "none";
     },
     removeDialogClose() {
+      this.toOperateCollectionItem = null
       this.toRemoveDialog = false;
       this.preEditBox = null;
     },
     //移除文章
     async removeTheArticle() {
-      const collection = {};
-      collection.article = this.toOperateArticle;
-      collection.ofCollection = this.selectedCollectionId;
-      const ret = await this.$API.collection.removeArticle(collection);
-      if (ret.code === 200) {
-        this.toRemoveDialog = false;
-        this.getCollectionList();
+      if (!this.toOperateCollectionItem) {
+        const collection = {};
+        collection.article = this.toOperateArticle;
+        collection.ofCollection = this.selectedCollectionId;
+        const ret = await this.$API.collection.removeArticle(collection);
+        if (ret.code === 200) {
+          this.toRemoveDialog = false;
+          this.getCollectionList();
+          this.$message({
+            type:'success',
+            message:'移除成功~'
+          })
+        }
+      }else{
+        const ret = await this.$API.collection.removeArticleWitchDeleted(this.toOperateCollectionItem)
+        if(ret.code===200){
+          this.toRemoveDialog = false;
+          this.getCollectionList();
+          this.toOperateCollectionItem = null
+          this.$message({
+            type:'success',
+            message:'移除成功~'
+          })
+        }
       }
     },
     //打开移动对话框
@@ -380,9 +411,10 @@ export default {
       });
     },
     //打开移除对话框
-    openToRemoveDialog(articleId) {
+    openToRemoveDialog(articleId, collectionItemId) {
       this.toRemoveDialog = true;
       this.toOperateArticle = articleId;
+      this.toOperateCollectionItem = collectionItemId;
     },
     async handleCurrentChange(val) {
       this.currentPage = val;
@@ -436,6 +468,9 @@ export default {
 </script>
   
 <style lang="less" scoped>
+.el-dialog__wrapper {
+  overflow-y: hidden;
+}
 .collection-view {
   min-width: 1531px;
   min-height: 100vh;
@@ -516,14 +551,15 @@ export default {
           background-color: var(--theme_userView_btn_bg_hover) !important;
           box-shadow: 0 2px 2px 0 rgb(0 0 0 / 16%),
             0 2px 10px 0 rgb(0 0 0 / 12%);
-          background-color: rgb(35, 109, 227);
+          // background-color: rgb(35, 109, 227);
         }
         .is-active {
           color: rgb(63, 126, 228) !important;
           background-color: var(--theme_userView_btn_bg_hover) !important;
-
-          box-shadow: 0 2px 5px 0 rgb(0 0 0 / 24%),
-            0 5px 15px 0 rgb(0 0 0 / 19%);
+          box-shadow: 0 2px 2px 0 rgb(0 0 0 / 16%),
+            0 2px 10px 0 rgb(0 0 0 / 12%);
+          // box-shadow: 0 2px 5px 0 rgb(0 0 0 / 24%),
+          //   0 5px 15px 0 rgb(0 0 0 / 19%);
         }
       }
       .setting-nav::-webkit-scrollbar {
@@ -592,6 +628,7 @@ export default {
                 color: var(--theme_search_input_blue_color);
               }
               .to-edit-reply {
+                padding-bottom: 8px;
                 display: none;
                 z-index: 100;
                 position: absolute;
@@ -599,7 +636,7 @@ export default {
                 top: 20px;
                 right: 10px;
                 width: 85px;
-                height: 60px;
+                min-height: 30px;
                 background-color: white;
                 box-shadow: 0 2px 3px 0 rgb(0 0 0 / 24%),
                   0 2px 5px 0 rgb(0 0 0 / 19%);

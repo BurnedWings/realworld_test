@@ -122,9 +122,12 @@ export default {
     async getEmailList(){
       const ret = await this.$API.user.getEmailList()
       if(ret.code===200){
-        this.emailList = ret.email.emailList
+        if(ret.email){
+          this.emailList = ret.email.emailList
         this.spareEmail = ret.email.spareEmail
         this.targetSpareEmail = ret.email.spareEmail
+        }
+        
       }
     },
     //更新备用邮箱

@@ -86,9 +86,9 @@
 </template>
   
 <script>
-import TrendInput from "@/components/TrendInput";
+const TrendInput = () => import("@/components/TrendInput");
 
-import Comment from "@/components/Comment";
+const Comment = () => import("@/components/Comment");
 
 export default {
   name: "TrendsView",

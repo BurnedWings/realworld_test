@@ -122,7 +122,7 @@
         </ul>
       </div>
     </div>
-    <div class="search-view">
+    <!-- <div class="search-view">
       <div class="background-container" @click="closeSearchView"></div>
       <div v-if="isSearchContainerShow" class="search-container">
         <div class="title">
@@ -152,7 +152,38 @@
           </div>
         </div>
       </div>
-    </div>
+    </div>-->
+    <el-dialog class="my-dialog" title="Search" center :visible.sync="dialogTableVisible">
+      <!-- <div class="search-container">
+        
+      </div>-->
+      <!-- <div class="title">
+          Search
+          <i class="search-container-icon el-icon-close" @click="closeSearchView"></i>
+      </div>-->
+      <div class="title-line"></div>
+      <div class="search-input">
+        <div class="search-input-title">keyword</div>
+        <input
+          ref="searchInput"
+          type="text"
+          @focus="changeInputTitleColor"
+          @blur="removeInputTitleColor"
+          @input="inputValueChange"
+          v-model="inputInfo"
+        />
+        <div class="input-line"></div>
+      </div>
+      <div class="search-data-view">
+        <div class="data-item" v-for="(article, index) in searchArticleArr" :key="article._id">
+          <div class="data-title" @click="toDetailArticleView(article._id)">
+            <div class="side-bar"></div>
+            <div class="title-content">{{ article.title }}</div>
+          </div>
+          <div class="data-description">{{ article.description }}</div>
+        </div>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -166,10 +197,10 @@ export default {
       navChangeCount: 0,
       darkTheme: null,
       lightTheme: null,
-      isSearchContainerShow: false,
       inputInfo: "",
       searchArticleArr: [],
-      isShowSelect: false
+      isShowSelect: false,
+      dialogTableVisible: false
     };
   },
   computed: {
@@ -185,8 +216,8 @@ export default {
     }
   },
   methods: {
-    toTop(){
-      window.scrollTo(0, 0)
+    toTop() {
+      window.scrollTo(0, 0);
     },
     //ok
     changeNavbar() {
@@ -393,7 +424,7 @@ export default {
     showSelect() {
       const hei = document.body.clientHeight;
       const searchBackground = document.querySelector(".select-background");
-      searchBackground.style.height = hei + "px";
+      searchBackground.style.height = "100vh";
       searchBackground.classList.add("select-background-change");
       this.isShowSelect = true;
     },
@@ -418,26 +449,30 @@ export default {
       this.$router.push("/collectionView");
     },
     showSearchView() {
-      const hei = document.body.clientHeight;
-      const searchBackground = document.querySelector(".background-container");
-      searchBackground.style.height = hei + "px";
-      searchBackground.classList.add("background-container-change");
-      this.isSearchContainerShow = true;
+      this.searchArticleArr = [];
+      this.inputInfo = "";
+      this.dialogTableVisible = true;
+      // const hei = document.body.clientHeight;
+      // const searchBackground = document.querySelector(".background-container");
+      // searchBackground.style.height = hei + "px";
+      // searchBackground.classList.add("background-container-change");
       this.$nextTick(() => {
         this.$refs.searchInput.focus();
       });
     },
     closeSearchView() {
-      const searchBackground = document.querySelector(".background-container");
-      searchBackground.classList.remove("background-container-change");
-      const searchContainer = document.querySelector(".search-container");
-      searchContainer.style.animation = "closeSearchContainer 0.5s forwards";
-      setTimeout(() => {
-        searchBackground.style.height = 0 + "px";
-        this.isSearchContainerShow = false;
-        this.searchArticleArr = [];
-        this.inputInfo = "";
-      }, 500);
+      this.dialogTableVisible = false;
+      
+      // const searchBackground = document.querySelector(".background-container");
+      // searchBackground.classList.remove("background-container-change");
+      // const searchContainer = document.querySelector(".search-container");
+      // searchContainer.style.animation = "closeSearchContainer 0.5s forwards";
+      // setTimeout(() => {
+      //   searchBackground.style.height = 0 + "px";
+      //   this.isSearchContainerShow = false;
+      //   this.searchArticleArr = [];
+      //   this.inputInfo = "";
+      // }, 500);
     },
     //输入框获取焦点时改变标题颜色
     changeInputTitleColor() {
@@ -452,7 +487,9 @@ export default {
       //注意箭头函数this指向问题
       async function() {
         if (this.inputInfo.trim() !== "") {
-          const ret = await this.$API.article.searchArticle(this.inputInfo);
+          const ret = await this.$API.article.searchArticle(
+            this.inputInfo.trim()
+          );
           if (ret.code === 200) {
             this.searchArticleArr = ret.articles;
           }
@@ -486,8 +523,7 @@ export default {
         }
       });
       this.closeSearchView();
-    },
-    
+    }
   },
   mounted() {
     //添加防抖函数
@@ -521,6 +557,126 @@ export default {
 }
 </style>
 <style lang="less"  >
+.my-dialog {
+  // .search-container {
+  //   width: 50%;
+  //   min-height: 270px;
+  //   background-color: var(--theme_search_view_bg_color);
+  //   position: fixed;
+  //   z-index: 1032;
+  //   border: 0;
+  //   border-radius: 0.125rem;
+  //   -webkit-box-shadow: 0 5px 11px 0 rgb(0 0 0 / 18%),
+  //     0 4px 15px 0 rgb(0 0 0 / 15%);
+  //   box-shadow: 0 5px 11px 0 rgb(0 0 0 / 18%), 0 4px 15px 0 rgb(0 0 0 / 15%);
+  //   left: 50%;
+  //   transform: translateX(-50%);
+  //   transition: all 0.5s;
+  //   animation-name: showSearchContainer;
+  //   animation-duration: 0.5s;
+  //   animation-fill-mode: forwards;
+  //   .title {
+  //     font-size: 20px;
+  //     text-align: center;
+  //     margin-top: 20px;
+  //     margin-bottom: 10px;
+  //     .search-container-icon {
+  //       position: absolute;
+  //       right: 10px;
+  //       top: 23px;
+  //       cursor: pointer;
+  //     }
+  //     .search-container-icon:hover {
+  //       transition: color 0.5s;
+  //       color: rgb(48, 169, 222);
+  //     }
+  //   }
+  //   .title-line {
+  //     width: 100%;
+  //     height: 1px;
+  //     background-color: var(--theme_search_line_color);
+  //     margin-bottom: 20px;
+  //   }
+
+  // }
+  .el-dialog__header {
+    background-color: var(--theme_search_view_bg_color);
+    .el-dialog__title {
+      color: var(--theme_font_color);
+    }
+  }
+  .el-dialog__body {
+    background-color: var(--theme_search_view_bg_color);
+    color: var(--theme_font_color);
+  }
+  .search-input {
+    width: 90%;
+    height: 90px;
+
+    margin: 0 auto;
+    .search-input-title {
+      font-size: 14px;
+      margin-bottom: 10px;
+      color: #757575;
+    }
+    input {
+      color: var(--theme_font_color);
+      width: 100%;
+      outline-style: none;
+      height: 40px;
+      border: none;
+      caret-color: var(--theme_search_input_blue_color);
+      background-color: transparent;
+    }
+    .input-line {
+      transition: background-color 0.3s;
+      width: 100%;
+      height: 1px;
+      background-color: var(--theme_search_line_color);
+    }
+    input:focus + .input-line {
+      height: 1.5px;
+      background-color: var(--theme_search_input_blue_color);
+    }
+  }
+  .search-data-view {
+    width: 90%;
+    max-height: 450px;
+    overflow-y: auto;
+    margin: 0 auto 20px auto;
+    .data-item {
+      margin-top: 20px;
+
+      .data-title {
+        transition: all 0.5s;
+        height: 50px;
+        font-weight: 600;
+        cursor: pointer;
+        .side-bar {
+          width: 3px;
+          height: 50px;
+          float: left;
+          background-color: rgb(13, 71, 161);
+        }
+        .title-content {
+          float: left;
+          height: 50px;
+          line-height: 50px;
+          margin-left: 20px;
+        }
+      }
+      .data-title:hover {
+        background-color: var(--theme_search_data_title_hover_bg);
+        color: rgb(48, 169, 222);
+      }
+
+      .data-description {
+        font-size: 14px;
+        margin-left: 22px;
+      }
+    }
+  }
+}
 .header {
   width: 100%;
   height: 64px;
@@ -558,7 +714,7 @@ export default {
       a {
         font-weight: 600;
         transition: color 0.3s;
-        
+
         img {
           width: 30px;
           border-radius: 50%;
@@ -835,113 +991,113 @@ export default {
     opacity: 1;
   }
 
-  .search-container {
-    width: 50%;
-    min-height: 270px;
-    background-color: var(--theme_search_view_bg_color);
-    position: fixed;
-    z-index: 1032;
-    border: 0;
-    border-radius: 0.125rem;
-    -webkit-box-shadow: 0 5px 11px 0 rgb(0 0 0 / 18%),
-      0 4px 15px 0 rgb(0 0 0 / 15%);
-    box-shadow: 0 5px 11px 0 rgb(0 0 0 / 18%), 0 4px 15px 0 rgb(0 0 0 / 15%);
-    left: 50%;
-    transform: translateX(-50%);
-    transition: all 0.5s;
-    animation-name: showSearchContainer;
-    animation-duration: 0.5s;
-    animation-fill-mode: forwards;
-    .title {
-      font-size: 20px;
-      text-align: center;
-      margin-top: 20px;
-      margin-bottom: 10px;
-      .search-container-icon {
-        position: absolute;
-        right: 10px;
-        top: 23px;
-        cursor: pointer;
-      }
-      .search-container-icon:hover {
-        transition: color 0.5s;
-        color: rgb(48, 169, 222);
-      }
-    }
-    .title-line {
-      width: 100%;
-      height: 1px;
-      background-color: var(--theme_search_line_color);
-      margin-bottom: 20px;
-    }
-    .search-input {
-      width: 90%;
-      height: 90px;
+  // .search-container {
+  //   width: 50%;
+  //   min-height: 270px;
+  //   background-color: var(--theme_search_view_bg_color);
+  //   position: fixed;
+  //   z-index: 1032;
+  //   border: 0;
+  //   border-radius: 0.125rem;
+  //   -webkit-box-shadow: 0 5px 11px 0 rgb(0 0 0 / 18%),
+  //     0 4px 15px 0 rgb(0 0 0 / 15%);
+  //   box-shadow: 0 5px 11px 0 rgb(0 0 0 / 18%), 0 4px 15px 0 rgb(0 0 0 / 15%);
+  //   left: 50%;
+  //   transform: translateX(-50%);
+  //   transition: all 0.5s;
+  //   animation-name: showSearchContainer;
+  //   animation-duration: 0.5s;
+  //   animation-fill-mode: forwards;
+  //   .title {
+  //     font-size: 20px;
+  //     text-align: center;
+  //     margin-top: 20px;
+  //     margin-bottom: 10px;
+  //     .search-container-icon {
+  //       position: absolute;
+  //       right: 10px;
+  //       top: 23px;
+  //       cursor: pointer;
+  //     }
+  //     .search-container-icon:hover {
+  //       transition: color 0.5s;
+  //       color: rgb(48, 169, 222);
+  //     }
+  //   }
+  //   .title-line {
+  //     width: 100%;
+  //     height: 1px;
+  //     background-color: var(--theme_search_line_color);
+  //     margin-bottom: 20px;
+  //   }
+  //   .search-input {
+  //     width: 90%;
+  //     height: 90px;
 
-      margin: 0 auto;
-      .search-input-title {
-        font-size: 14px;
-        margin-bottom: 10px;
-        color: #757575;
-      }
-      input {
-        color: var(--theme_font_color);
-        width: 100%;
-        outline-style: none;
-        height: 40px;
-        border: none;
-        caret-color: var(--theme_search_input_blue_color);
-        background-color: transparent;
-      }
-      .input-line {
-        transition: background-color 0.3s;
-        width: 100%;
-        height: 1px;
-        background-color: var(--theme_search_line_color);
-      }
-      input:focus + .input-line {
-        height: 1.5px;
-        background-color: var(--theme_search_input_blue_color);
-      }
-    }
-    .search-data-view {
-      width: 90%;
-      max-height: 450px;
-      overflow-y: auto;
-      margin: 0 auto 20px auto;
-      .data-item {
-        margin-top: 20px;
+  //     margin: 0 auto;
+  //     .search-input-title {
+  //       font-size: 14px;
+  //       margin-bottom: 10px;
+  //       color: #757575;
+  //     }
+  //     input {
+  //       color: var(--theme_font_color);
+  //       width: 100%;
+  //       outline-style: none;
+  //       height: 40px;
+  //       border: none;
+  //       caret-color: var(--theme_search_input_blue_color);
+  //       background-color: transparent;
+  //     }
+  //     .input-line {
+  //       transition: background-color 0.3s;
+  //       width: 100%;
+  //       height: 1px;
+  //       background-color: var(--theme_search_line_color);
+  //     }
+  //     input:focus + .input-line {
+  //       height: 1.5px;
+  //       background-color: var(--theme_search_input_blue_color);
+  //     }
+  //   }
+  //   .search-data-view {
+  //     width: 90%;
+  //     max-height: 450px;
+  //     overflow-y: auto;
+  //     margin: 0 auto 20px auto;
+  //     .data-item {
+  //       margin-top: 20px;
 
-        .data-title {
-          transition: all 0.5s;
-          height: 50px;
-          font-weight: 600;
-          cursor: pointer;
-          .side-bar {
-            width: 3px;
-            height: 50px;
-            float: left;
-            background-color: rgb(13, 71, 161);
-          }
-          .title-content {
-            float: left;
-            height: 50px;
-            line-height: 50px;
-            margin-left: 20px;
-          }
-        }
-        .data-title:hover {
-          background-color: var(--theme_search_data_title_hover_bg);
-          color: rgb(48, 169, 222);
-        }
+  //       .data-title {
+  //         transition: all 0.5s;
+  //         height: 50px;
+  //         font-weight: 600;
+  //         cursor: pointer;
+  //         .side-bar {
+  //           width: 3px;
+  //           height: 50px;
+  //           float: left;
+  //           background-color: rgb(13, 71, 161);
+  //         }
+  //         .title-content {
+  //           float: left;
+  //           height: 50px;
+  //           line-height: 50px;
+  //           margin-left: 20px;
+  //         }
+  //       }
+  //       .data-title:hover {
+  //         background-color: var(--theme_search_data_title_hover_bg);
+  //         color: rgb(48, 169, 222);
+  //       }
 
-        .data-description {
-          font-size: 14px;
-          margin-left: 22px;
-        }
-      }
-    }
-  }
+  //       .data-description {
+  //         font-size: 14px;
+  //         margin-left: 22px;
+  //       }
+  //     }
+  //   }
+  // }
   .search-container-change {
     top: 28px;
   }

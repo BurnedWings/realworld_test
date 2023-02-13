@@ -84,7 +84,7 @@
 </template>
 
 <script>
-import TrendComment from "@/components/TrendComment";
+const TrendComment = () => import("@/components/TrendComment");
 export default {
   name: "DetailTrend",
   data() {

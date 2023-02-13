@@ -15,7 +15,6 @@ export const getTrendComment = ()=> request({url:'/message/getTrendComment',meth
 //获取所有未读条数
 export const getAllMessageCount = () => request({url:'/message/getAllNotCheckedMes',method:'get'})
 
-
 //修改未读回复状态
 export const changeUnCheckedReply = () => request({url:'/message/changeUnCheckedReply',method:'get'})
 

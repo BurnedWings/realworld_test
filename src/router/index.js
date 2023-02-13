@@ -102,6 +102,25 @@ const routes = [
         name: 'userInfo',
         component: () => import(/* webpackChunkName: "about" */ '../views/UserView/UserInfo')
       },
+      {
+        path: 'articleCollections',
+        name: 'articleCollections',
+        redirect:'articleCollections/collectionList',
+        component: () => import(/* webpackChunkName: "about" */ '../views/UserView/Collections'),
+        children: [
+          {
+            path: 'detailCollection/:collectionId',
+            name: 'detailCollection',
+            component: () => import(/* webpackChunkName: "about" */ '../views/UserView/Collections/DetailCollection')
+          },
+          {
+            path: 'collectionList',
+            name: 'collectionList',
+            component: () => import(/* webpackChunkName: "about" */ '../views/UserView/Collections/CollectionList')
+          },
+        ]
+      },
+
     ]
 
   },
@@ -243,6 +262,7 @@ router.beforeEach(async (to, from, next) => {
   //   //未登录
 
   // }
+
   if (to.name === 'detailArticle') {
     const ret = await getDetailArticle(to.params.articleId)
     if (ret.data) {
@@ -251,18 +271,20 @@ router.beforeEach(async (to, from, next) => {
       return next('/404')
     }
   }
+  const refreshToken = localStorage.kumicho_refresh_token
   const toPath = to.path
   if (toPath.indexOf('/messageView') != -1 || toPath.indexOf('/trendsView') != -1 || toPath.indexOf('collectionView') != -1 || toPath.indexOf('createArticle') != -1) {
-    if (!store.state.user.userInfo._id) {
+    if (!refreshToken) {
       return next('/login')
     }
   }
-  const refreshToken = localStorage.kumicho_refresh_token
+  
   if (to.name === 'login' || to.name === 'register') {
     if (refreshToken) {
       return next('/')
     }
   }
+
   next()
 })
 

@@ -2,54 +2,43 @@
   <div class="user-trends">
     <div class="title">个人动态</div>
     <div>
-      <div v-for="(trend,index) in concernTrendList" :key="trend._id" class="trend-item">
+      <div v-for="(trend, index) in concernTrendList" :key="trend._id" class="trend-item">
         <div class="item-line"></div>
         <div class="trend-item-top">
-          <img :src="$myBaseUrl+trend.user.image" alt />
-          <div class="username">{{trend.user.username}}</div>
-          <div class="updateDate">{{$dayjs(trend.createdAt).format("YYYY/MM/DD")}}&nbsp;更新</div>
-          <el-popconfirm
-            title="你确定要删除动态嘛?"
-            class="edit-container"
-            @confirm="deleteOwnTrend(trend._id)"
-          >
-            <i slot="reference" v-if="userId===trend.user._id" class="my-edit-icon el-icon-delete"></i>
+          <img :src="$myBaseUrl + trend.user.image" alt />
+          <div class="username">{{ trend.user.username }}</div>
+          <div class="updateDate">{{ $dayjs(trend.createdAt).format("YYYY/MM/DD") }}&nbsp;更新</div>
+          <el-popconfirm title="你确定要删除动态嘛?" class="edit-container" @confirm="deleteOwnTrend(trend._id)">
+            <i slot="reference" v-if="userId === trend.user._id" class="my-edit-icon el-icon-delete"></i>
           </el-popconfirm>
         </div>
         <div @click="toDetailTrend(trend._id)" class="trend-body">
-          <span v-html="trend.body"></span>
+          <span v-text="trend.body"></span>
         </div>
         <div class="img-container">
-          <div
-            v-for="(img,index) in trend.image"
-            style="width:200px;height:200px;overflow:hidden;display:inline-block;margin-right:5px;"
-          >
-            <el-image
-              style="width:100%;height: 100%;"
-              :key="index"
-              :src="img"
-              :preview-src-list="trend.image"
-              fit="cover"
-            ></el-image>
+          <div v-for="(img, index) in trend.image"
+            style="width:200px;height:200px;overflow:hidden;display:inline-block;margin-right:5px;">
+            <el-image style="width:100%;height: 100%;" :key="index" :src="img" :preview-src-list="trend.image"
+              fit="cover"></el-image>
           </div>
         </div>
         <div class="trend-message">
           <div class="trend-message-item">
             <i class="iconfont icon-dianji"></i>
-            {{trend.clicksCount}}热度
+            {{ trend.clicksCount }}热度
           </div>
-          <div @click="showComment(index,trend._id)" class="trend-message-item">
+          <div @click="showComment(index, trend._id)" class="trend-message-item">
             <i class="iconfont icon-taolun"></i>
-            {{trend.commentsCount}}讨论
+            {{ trend.commentsCount }}讨论
           </div>
-          <div @click="kudos(trend._id,trend.user._id)" class="trend-message-item">
+          <div @click="kudos(trend._id, trend.user._id)" class="trend-message-item">
             <i class="iconfont icon-dianzan"></i>
             <!-- el-icon-star-off -->
-            {{trend.favoritesCount}}点赞
+            {{ trend.favoritesCount }}点赞
           </div>
         </div>
         <!-- 评论 -->
-        <div id="my-comment-container" :class="'my-comment-container'+index"></div>
+        <div id="my-comment-container" :class="'my-comment-container' + index"></div>
       </div>
       <div class="bottom-line"></div>
       <div class="noMoreMessage">没有更多动态了哦</div>
@@ -117,7 +106,7 @@ export default {
           myDiv.classList.add("test");
           commentArea.appendChild(myDiv);
           const CommentComponent = Vue.extend(TrendComment);
-          new CommentComponent({ store,router }).$mount(".test");
+          new CommentComponent({ store, router }).$mount(".test");
           this.commentAreaIndex = index;
           const commentDiv = document.querySelector(
             `.my-comment-container${index}`
@@ -137,6 +126,7 @@ export default {
         }
       });
     },
+    //获取动态
     async getConcernTrend() {
       const ret = await this.$API.trend.getOwnTrend(this.$route.params.userId);
       if (ret.code === 200) {
@@ -174,6 +164,7 @@ export default {
   border: none;
   background-color: transparent;
 }
+
 .my-emojis-box {
   width: 100%;
   height: 190px;
@@ -185,10 +176,12 @@ export default {
   z-index: 100;
   overflow-y: scroll;
   box-shadow: 0 2px 5px 0 rgb(0 0 0 / 16%), 0 2px 10px 0 rgb(0 0 0 / 12%);
+
   ul {
     display: flex;
     flex-wrap: wrap;
     padding: 10px;
+
     li {
       cursor: pointer;
       width: 10%;
@@ -211,19 +204,23 @@ export default {
 
 .user-trends {
   padding-bottom: 200px;
+
   .title {
     margin-top: 10px;
     margin-bottom: 5px;
     font-size: 18px;
   }
+
   .trend-item {
     width: 100%;
     padding-top: 5px;
     padding-bottom: 5px;
     padding-right: 13px;
+
     & :deep(.comment-top-container) {
       margin-top: 70px;
     }
+
     &:after {
       /*伪元素是行内元素 正常浏览器清除浮动方法*/
       content: "";
@@ -232,22 +229,27 @@ export default {
       clear: both;
       visibility: hidden;
     }
+
     .item-line {
       height: 1px;
       transform: scaleY(0.5);
       background-color: rgb(131, 130, 130);
       margin-bottom: 10px;
     }
+
     .trend-item-top {
       position: relative;
+
       .my-edit-icon {
         float: right;
         margin-top: 15px;
         cursor: pointer;
+
         &:hover {
           color: var(--theme_search_input_blue_color);
         }
       }
+
       img {
         cursor: default;
         width: 49px;
@@ -255,6 +257,7 @@ export default {
         margin-left: 15px;
         margin-top: 5px;
       }
+
       .username {
         cursor: default;
         position: absolute;
@@ -262,6 +265,7 @@ export default {
         margin-left: 10px;
         display: inline-block;
       }
+
       .updateDate {
         cursor: default;
         position: absolute;
@@ -271,6 +275,7 @@ export default {
         display: inline-block;
       }
     }
+
     .trend-body {
       max-height: 145px;
       margin-top: 10px;
@@ -283,6 +288,7 @@ export default {
       display: -webkit-box;
       cursor: pointer;
     }
+
     .img-container {
       width: 52%;
       margin-top: 10px;
@@ -294,11 +300,13 @@ export default {
       //   object-fit: cover;
       // }
     }
+
     .trend-message {
       width: 300px;
       margin-top: 20px;
       margin-left: 75px;
       float: left;
+
       &:after {
         /*伪元素是行内元素 正常浏览器清除浮动方法*/
         content: "";
@@ -307,6 +315,7 @@ export default {
         clear: both;
         visibility: hidden;
       }
+
       .trend-message-item {
         float: left;
         margin-right: 15px;
@@ -319,24 +328,30 @@ export default {
           font-weight: 600;
         }
       }
+
       .trend-message-item:hover {
         color: var(--theme_search_input_blue_color);
       }
     }
+
     #my-comment-container {
       :deep(.comment-top-container .el-textarea) {
         width: 772px;
       }
+
       :deep(#reply-input-container) {
         width: 793px;
+
         .comment-input {
           .submit-button {
             margin-right: 74px;
           }
         }
+
         & :deep(.el-textarea) {
           width: 85.5%;
         }
+
         & :deep(.emojis-button) {
           margin-left: 42px;
           height: 32px;
@@ -344,9 +359,11 @@ export default {
           width: 65px;
           padding: 1px;
         }
+
         & :deep(.user-img) {
           margin-top: 18px;
           width: 33px;
+
           img {
             width: 33px;
           }
@@ -354,6 +371,7 @@ export default {
       }
     }
   }
+
   .bottom-line {
     width: 100%;
     height: 1px;
@@ -362,6 +380,7 @@ export default {
     margin-top: 15px;
     margin-bottom: 15px;
   }
+
   .noMoreMessage {
     text-align: center;
   }

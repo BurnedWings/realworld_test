@@ -81,6 +81,7 @@ requests.interceptors.response.use(
     else {
       return Promise.reject(new Error('fail'));
     }
+    // return Promise.reject(new Error('fail'));
   }
 )
 

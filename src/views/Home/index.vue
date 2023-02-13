@@ -4,57 +4,49 @@
     <div class="my-container">
       <div class="row container-row" style="overflow: hidden">
         <div class="container-title">
-          <div
-            ref="typeItem"
-            v-for="(type,index) in articleType"
-            @click="searchByType(index,type._id)"
-            :class="index===0?'active-title-item title-item':'title-item'"
-          >{{type.content}}</div>
+          <div ref="typeItem" v-for="(type, index) in articleType" @click="searchByType(index, type._id)"
+            :class="index === 0 ? 'active-title-item title-item' : 'title-item'">{{ type.content }}</div>
         </div>
-        <div v-if="articlesCount===0" class="no-article-list">
+        <div v-if="articlesCount === 0" class="no-article-list">
           <div class="title-line"></div>
           <div class="prompt-message">还没有人发表文章哦,快去发表新的文章吧~</div>
         </div>
         <div>
-          <div
-            class="row index-card my-card"
-            v-for="(article, index) in articleList"
-            :key="article._id"
-          >
+          <div class="row index-card my-card" v-for="(article, index) in articleList" :key="article._id">
             <div class="publish-time">
               <i class="iconfont icon-shijian"></i>
-              发布于 &nbsp; {{$dayjs(article.createdAt).format("YYYY/MM/DD")}}
+              发布于 &nbsp; {{ $dayjs(article.createdAt).format("YYYY/MM/DD") }}
             </div>
             <div style="cursor: pointer;" @click="showDetailArticle(article._id)">
               <div class="article-title">{{ article.title }}</div>
               <div v-if="article.cover" class="article-cover">
-                <img :src="$myBaseUrl+article.cover" alt />
+                <img :src="$myBaseUrl + article.cover" alt />
               </div>
               <span class="article-description">
-                {{article.author.username}}:
+                {{ article.author.username }}:
                 <span v-html="article.body"></span>
               </span>
             </div>
             <div class="article-message">
               <div @click="showDetailArticle(article._id)" class="article-message-item">
                 <i class="iconfont icon-dianji"></i>
-                {{article.clicksCount}}热度
+                {{ article.clicksCount }}热度
               </div>
               <div @click="showDetailArticle(article._id)" class="article-message-item">
                 <i class="iconfont icon-taolun"></i>
-                {{article.commentsCount}}讨论
+                {{ article.commentsCount }}讨论
               </div>
-              <div @click="kudos(article._id,article.author._id)" class="article-message-item">
+              <div @click="kudos(article._id, article.author._id)" class="article-message-item">
                 <i class="iconfont icon-dianzan"></i>
                 <!-- el-icon-star-off -->
-                {{article.favoritesCount}}点赞
+                {{ article.favoritesCount }}点赞
               </div>
             </div>
             <div class="article-tag">
               <div v-for="(tag, index) in article.tagList" class="article-tag-item">#{{ tag }}</div>
             </div>
           </div>
-          <div v-if="articleList.length===totalCount&&totalCount!=0" class="row index-card my-card">
+          <div v-if="articleList.length === totalCount && totalCount != 0" class="row index-card my-card">
             <div class="bottom-message">没有更多文章了~</div>
           </div>
         </div>
@@ -63,20 +55,11 @@
     <div class="right-container">
       <div class="right-top-container">
         <el-carousel :interval="4000" indicator-position="outside">
-          <el-carousel-item v-for="(item,index) in swiperList" :key="item._id">
-            <el-popover
-              placement="right-start"
-              width="160"
-              trigger="hover"
-              :content="item.description?'该封面是'+item.description+',喜欢就为Ta点赞吧':'该封面暂时还没有详细信息,喜欢就为Ta点赞吧'"
-            >
-              <el-image
-                slot="reference"
-                @click="kudosTheSwiper(item._id)"
-                style="width:100%;height:100%;"
-                :src="$myBaseUrl+item.image"
-                fit="cover"
-              ></el-image>
+          <el-carousel-item v-for="(item, index) in swiperList" :key="item._id">
+            <el-popover placement="right-start" width="160" trigger="hover"
+              :content="item.description ? '该封面是' + item.description + ',喜欢就为Ta点赞吧' : '该封面暂时还没有详细信息,喜欢就为Ta点赞吧'">
+              <el-image slot="reference" @click="kudosTheSwiper(item._id)" style="width:100%;height:100%;"
+                :src="$myBaseUrl + item.image" fit="cover"></el-image>
             </el-popover>
           </el-carousel-item>
         </el-carousel>
@@ -87,9 +70,10 @@
           <span>站长推荐</span>
         </div>
         <div class="right-bottom-container-content">
-          <div  @click="showRecommendDetail(item._id)" v-for="(item,index) in recommendArticle" :key="item._id" class="content-item">
+          <div @click="showRecommendDetail(item._id)" v-for="(item, index) in recommendArticle" :key="item._id"
+            class="content-item">
             <i class="el-icon-edit-outline"></i>
-            <span>{{item.title}}</span>
+            <span>{{ item.title }}</span>
           </div>
         </div>
       </div>
@@ -121,13 +105,13 @@ export default {
     swiperList() {
       return this.$store.state.user.swiperList;
     },
-    recommendArticle(){
-      return this.$store.state.user.articleList
+    recommendArticle() {
+      return this.$store.state.user.articleList;
     }
   },
   methods: {
     //查看推荐文章详情
-    showRecommendDetail(articleId){
+    showRecommendDetail(articleId) {
       this.$router.push({
         name: "detailArticle",
         params: {
@@ -137,7 +121,7 @@ export default {
     },
     //轮播图点赞
     async kudosTheSwiper(val) {
-      if (this.canKudosSwiper!=val) {
+      if (this.canKudosSwiper != val) {
         await this.$API.user.kudosTheSwiper(val);
         this.canKudosSwiper = val;
         setTimeout(() => {
@@ -159,6 +143,12 @@ export default {
       }
       const ret = await this.$API.article.getArticleList(null, this.targetType);
       if (ret.code === 200) {
+        for (const key in ret.data) {
+          ret.data[key].body = ret.data[key].body.replaceAll(
+            "http://localhost:3000/",
+            this.$myBaseUrl
+          )
+        }
         this.articleList = ret.data;
         this.articlesCount = ret.articlesCount;
         this.totalCount = ret.totalCount;
@@ -228,7 +218,10 @@ export default {
           //发送异步请求请求数据，同时携带offset并自增offset
           //noMore是自定义变量，如果是最后一批数据则以后都不加载
           if (!this.noMore) {
-            const ret = await this.$API.article.getArticleList(this.offset,this.targetType);
+            const ret = await this.$API.article.getArticleList(
+              this.offset,
+              this.targetType
+            );
             if (ret.code === 200) {
               if (ret.articlesCount < 4) {
                 this.noMore = true;
@@ -255,9 +248,9 @@ export default {
       }
       this.$refs.typeItem[index].classList.add("active-title-item");
       this.oldTypeIndex = index;
-      this.canGetNewArticle = true
-      this.noMore = false
-      this.offset = 1
+      this.canGetNewArticle = true;
+      this.noMore = false;
+      this.offset = 1;
     },
     async getArticleType() {
       await this.$store.dispatch("getArticleType");
@@ -270,7 +263,7 @@ export default {
     window.addEventListener("scroll", this.windowScroll); //监听页面滚动
     let img = document.querySelector(".el-carousel__container");
     //点击特效
-    !(function(e, t, a) {
+    !(function (e, t, a) {
       function r() {
         for (var e = 0; e < s.length; e++)
           s[e].alpha <= 0
@@ -297,7 +290,7 @@ export default {
 
       function n() {
         var t = "function" == typeof e.onclick && e.onclick;
-        e.onclick = function(e) {
+        e.onclick = function (e) {
           t && t(), o(e);
         };
       }
@@ -345,7 +338,7 @@ export default {
         e.mozRequestAnimationFrame ||
         e.oRequestAnimationFrame ||
         e.msRequestAnimationFrame ||
-        function(e) {
+        function (e) {
           setTimeout(e, 1e3 / 60);
         }),
         i(
@@ -371,6 +364,7 @@ export default {
   background-color: var(--theme_outer_bg_color);
   transition: all 0.5s;
   padding-top: 85px;
+
   // padding-bottom: 30px;
   .my-container {
     transition: all 0.5s;
@@ -379,9 +373,11 @@ export default {
     border-top-left-radius: 0.5rem;
     border-top-right-radius: 0.5rem;
     box-shadow: 0 12px 15px 0 rgb(0 0 0 / 24%), 0 17px 50px 0 rgb(0 0 0 / 19%);
+
     .container-row {
       width: 900px;
       padding: 0 30px 0 30px;
+
       .container-title {
         font-weight: 800;
         margin: 20px 30px;
@@ -389,6 +385,7 @@ export default {
         display: flex;
         flex-wrap: wrap;
         justify-content: flex-start;
+
         .title-item {
           margin-right: 20px;
           cursor: pointer;
@@ -396,18 +393,22 @@ export default {
           opacity: 1;
           animation: titleMove 1.3s;
           transition: color 0.3s;
+
           &:hover {
             color: var(--theme_search_input_blue_color);
           }
         }
+
         .active-title-item {
           color: var(--theme_search_input_blue_color);
         }
+
         @keyframes titleMove {
           0% {
             margin-left: -10px;
             opacity: 0;
           }
+
           100% {
             margin-left: 20px;
             opacity: 1;
@@ -491,6 +492,7 @@ export default {
           float: left;
           overflow: hidden;
           margin-right: 15px;
+
           img {
             height: 100%;
           }
@@ -506,12 +508,15 @@ export default {
           cursor: pointer;
           max-height: 150px;
         }
+
         .article-description :deep(img) {
           display: none !important;
+
           & {
             height: 0px !important;
           }
         }
+
         .article-description :deep(p) {
           // font-size: 16px;
           line-height: 27px;
@@ -522,6 +527,7 @@ export default {
         .article-description :deep(*) {
           font-size: 1rem;
         }
+
         .article-description :deep(p:has(img)) {
           display: none !important;
         }
@@ -542,6 +548,7 @@ export default {
               font-weight: 600;
             }
           }
+
           .article-message-item:hover {
             color: var(--theme_search_input_blue_color);
           }
@@ -561,6 +568,7 @@ export default {
             cursor: pointer;
             transition: color 0.2s;
           }
+
           .article-tag-item:hover {
             color: var(--theme_search_input_blue_color);
           }
@@ -676,6 +684,7 @@ export default {
         //   }
         // }
       }
+
       // @media screen and (max-width: 281px) {
       //   .container-title {
       //     margin: 20px 13px;
@@ -683,8 +692,10 @@ export default {
       // }
     }
   }
+
   .right-container {
     width: 270px;
+
     .right-top-container {
       transition: all 0.5s;
       width: 260px;
@@ -693,6 +704,7 @@ export default {
       background-color: var(--theme_inner_bg_color);
       border-radius: 0.5rem;
       box-shadow: 0 12px 15px 0 rgb(0 0 0 / 24%), 0 17px 50px 0 rgb(0 0 0 / 19%);
+
       &:deep(.el-carousel__container) {
         height: 220px;
         // img {
@@ -702,6 +714,7 @@ export default {
         // }
       }
     }
+
     .right-bottom-container {
       margin-top: 20px;
       width: 260px;
@@ -713,20 +726,24 @@ export default {
       background-color: var(--theme_inner_bg_color);
       border-radius: 0.5rem;
       box-shadow: 0 12px 15px 0 rgb(0 0 0 / 24%), 0 17px 50px 0 rgb(0 0 0 / 19%);
+
       .right-bottom-container-title {
         margin-top: 8px;
         cursor: default;
+
         i {
           margin-left: 80px;
           font-size: 18px;
           margin-right: 5px;
         }
       }
+
       .right-bottom-container-content {
         height: 335px;
         padding-top: 10px;
         padding-left: 13px;
         padding-right: 10px;
+
         .content-item {
           max-height: 50px;
           margin-bottom: 20px;
@@ -738,10 +755,12 @@ export default {
           -webkit-line-clamp: 2;
           overflow: hidden;
           display: -webkit-box;
+
           i {
             margin-right: 5px;
             font-size: 18px;
           }
+
           &:hover {
             color: var(--theme_search_input_blue_color);
           }

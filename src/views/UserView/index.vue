@@ -18,6 +18,9 @@
               <router-link :to="{name:'auditIng'}" exact>待审核</router-link>
             </li>
             <li>
+              <router-link :to="{name:'articleCollections'}">合集</router-link>
+            </li>
+            <li>
               <router-link :to="{name:'userTrends'}" exact>动态</router-link>
             </li>
             <li>
@@ -85,7 +88,7 @@ export default {
     return {
       isShowUserInfoNav: false,
       oneUserInfo: {},
-      isConcern: null
+      isConcern: false
     };
   },
 
@@ -116,6 +119,7 @@ export default {
     },
     //关注
     async concernOneUser() {
+      if(!this.myId) return this.$router.push("/login")
       const fans = {};
       fans.ofUser = this.userId;
       const ret = await this.$API.user.concernOneUser(fans);
@@ -152,7 +156,10 @@ export default {
     },
     isLoginUser() {
       return this.$route.params.userId === this.$store.state.user.userInfo._id;
-    }
+    },
+    myId() {
+      return this.$store.state.user.userInfo._id;
+    },
   },
   watch: {
     isLoginUser() {
@@ -211,7 +218,7 @@ export default {
         bottom: 0px;
         width: 100%;
         height: 31px;
-
+        padding-left: 300px;
         .router-nav {
           font-weight: 600;
           .router-link-active {
@@ -235,11 +242,11 @@ export default {
         }
 
         .userInfo-container {
-          width: 230px;
+          width: 150px;
           position: relative;
-          left: 155px;
+          left: -70px;
           top: -5px;
-
+          display: inline-block;
           img {
             border-radius: 50%;
             width: 32px;
@@ -253,11 +260,12 @@ export default {
           }
         }
         ul {
-          width: 70%;
-          position: absolute;
-          top: -5px;
-          right: 10%;
-          width: 60%;
+          // width: 70%;
+          // position: absolute;
+          // top: -5px;
+          // margin: 0 auto;
+          width: 919px;
+          float: right;
           line-height: 24px;
           li {
             display: inline-block;
@@ -266,6 +274,7 @@ export default {
             cursor: pointer;
           }
         }
+        padding-right: 150px;
       }
       .line {
         position: absolute;

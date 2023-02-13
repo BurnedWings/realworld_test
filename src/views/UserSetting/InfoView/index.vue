@@ -86,6 +86,7 @@ export default {
     },
   },
   methods: {
+    //更新个人信息
     async updateProfile() {
       const ret = await this.$API.user.updateUserInfo({
         username: this.userInfo.username.trim(),

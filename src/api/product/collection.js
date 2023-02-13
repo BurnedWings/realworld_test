@@ -29,3 +29,5 @@ export const removeArticle = (collection) => request({url:'/collectionItem/cance
 
 //移动文章到指定文件夹
 export const removeArticleTo = (collection) => request({url:'/collections/removeArticleTo',method:'post',data:{collection}})
+
+export const removeArticleWitchDeleted = (collectionItemId) => request({url:'/collections/removeArticleWitchDeleted',method:'post',data:{collectionItemId}})

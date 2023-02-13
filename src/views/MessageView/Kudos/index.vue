@@ -9,23 +9,22 @@
             <img class="user-img" :src="$myBaseUrl+kudos.user.image" />
             <div class="item-message-container">
               <span class="user-name">{{kudos.user.username}}</span>
-              <span class="item-title" v-if="kudos.article">点赞了你的文章</span>
-              <span class="item-title" v-if="kudos.trend">点赞了你的动态</span>
-              <span class="item-title" v-if="kudos.comment">点赞了你的评论</span>
-              <span class="item-title" v-if="kudos.reply">点赞了你的评论</span>
-              <span class="item-title" v-if="kudos.trendComment">点赞了你的评论</span>
-              <span class="item-title" v-if="kudos.trendReply">点赞了你的评论</span>
+              <span class="item-title" v-if="kudos.article||kudos.article===null">点赞了你的文章</span>
+              <span class="item-title" v-if="kudos.trend||kudos.trend===null">点赞了你的动态</span>
+              <span class="item-title" v-if="kudos.comment||kudos.comment===null">点赞了你的评论</span>
+              <span class="item-title" v-if="kudos.reply||kudos.reply===null">点赞了你的评论</span>
+              <span class="item-title" v-if="kudos.trendComment||kudos.trendComment===null">点赞了你的评论</span>
+              <span class="item-title" v-if="kudos.trendReply||kudos.trendReply===null">点赞了你的评论</span>
               <br />
               <span class="user-bio">{{$dayjs(kudos.createdAt).format("YYYY/MM/DD HH:mm")}}</span>
             </div>
             <div class="own-message">
-              <span v-if="kudos.article">{{kudos.article.title}}</span>
-              <span v-if="kudos.trend">{{kudos.trend.body}}</span>
-
-              <span v-if="kudos.comment">{{kudos.comment.body}}</span>
-              <span v-if="kudos.reply">{{kudos.reply.body}}</span>
-              <span v-if="kudos.trendComment">{{kudos.trendComment.body}}</span>
-              <span v-if="kudos.trendReply">{{kudos.trendReply.body}}</span>
+              <span v-if="kudos.article||kudos.article===null">{{kudos.article?kudos.article.title:'该文章已被删除'}}</span>
+              <span v-if="kudos.trend||kudos.trend===null">{{kudos.trend?kudos.trend.body:'该动态已被删除'}}</span>
+              <span v-if="kudos.comment||kudos.comment===null">{{kudos.comment?kudos.comment.body:'该评论已被删除'}}</span>
+              <span v-if="kudos.reply||kudos.reply===null">{{kudos.reply?kudos.reply.body:'该评论已被删除'}}</span>
+              <span v-if="kudos.trendComment||kudos.trendComment===null">{{kudos.trendComment?kudos.trendComment.body:'该评论已被删除'}}</span>
+              <span v-if="kudos.trendReply||kudos.trendReply===null">{{kudos.trendReply?kudos.trendReply.body:'该评论已被删除'}}</span>
             </div>
           </div>
         </div>

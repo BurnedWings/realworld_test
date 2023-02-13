@@ -2,12 +2,13 @@ import request from "../request";
 //创建文章
 export const createArticle = (articleMessage) => request({ url: '/articles', method: 'post', data: { article: articleMessage } })
 
-
 //获取文章列表
 export const getArticleList = (offset, typeId) => request({ url: '/articles/getArticleList', method: 'post', data: { offset, typeId } })
 
 //获取文章详情
 export const getDetailArticle = (articleId) => request({ url: '/articles/getDetailArticle', method: 'post', data: { articleId } })
+
+export const getToEditDetailArticle = (articleId) => request({url:'/articles/getToEditDetailArticle',method:'post',data:{articleId}})
 
 //获取指定用户文章
 export const getArticlesOfOneUser = (userId) => request({ url: `/articles/${userId}`, method: 'get' })

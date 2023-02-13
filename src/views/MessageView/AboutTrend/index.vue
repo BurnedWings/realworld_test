@@ -39,7 +39,7 @@
 <script>
 import Vue from "vue";
 import store from "@/store/index";
-import MessageInput from "@/components/MessageInput";
+const MessageInput = () => import("@/components/MessageInput");
 export default {
   name: "AboutTrend",
   data() {

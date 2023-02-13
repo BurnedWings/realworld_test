@@ -65,3 +65,29 @@ export const getEmailList = () => request({url:'/users/getEmailList',method:'get
 
 //更新备用邮箱
 export const updateSpareEmail = (spareEmail) => request({url:'/users/updateSpareEmail',method:'post',data:{spareEmail}})
+
+//创建合集
+export const createTheArticleCollection = (collection) => request({url:'/users/createTheArticleCollection',method:'post',data:{collection}})
+
+//获取合集
+export const getArticleCollection = () => request({url:'/users/getArticleCollection',method:'post'})
+
+//获取单个合集
+export const getOneArticleCollection = (collectionId) => request({url:'/users/getOneArticleCollection',method:'post',data:{collectionId}})
+
+//获取合集未包含文章
+export const getCollectionArticleList = (collectionId) => request({url:'/users/getCollectionArticleList',method:'post',data:{collectionId}})
+
+//添加文字到合集
+export const addArticleToCollection = (articleId,collectionId) => request({url:'/users/addArticleToCollection',method:'post',data:{articleId,collectionId}})
+
+//删除文章
+export const deleteArticleOfCollection = (articleId,collectionId) => request({url:'/users/deleteArticleOfCollection',method:'post',data:{articleId,collectionId}})
+
+//更新合集
+export const updateTheCollection = (collectionId,title,keyWord) => request({url:'/users/updateTheCollection',method:'post',data:{collectionId,title,keyWord}})
+
+//删除合集
+export const deleteTheCollection = (collectionId) => request({url:'/users/deleteTheCollection',method:'post',data:{collectionId}})
+
+export const getArticleOfCollection = (articleId) => request({url:'/users/getArticleOfCollection',method:'post',data:{articleId}})

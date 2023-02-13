@@ -3,26 +3,26 @@
     <Header></Header>
     <transition name="fade-transform" mode="out-in">
       <router-view key="key"></router-view>
-      </transition>
+    </transition>
     <Footer></Footer>
   </div>
 </template>
 <script>
-import Header from "./components/Header";
-import Footer from "./components/Footer";
-export default {
-  name: "App",
-  data() {
-    return {};
-  },
-  components: {
-    Header,
-    Footer
-  },
-  computed: {},
-  methods: {},
-  mounted() {}
-};
+  const Header = () => import("./components/Header");
+  const Footer = () => import("./components/Footer");
+  export default {
+    name: "App",
+    data() {
+      return {};
+    },
+    components: {
+      Header,
+      Footer
+    },
+    computed: {},
+    methods: {},
+    mounted() { }
+  };
 </script>
 <style >
 /* fade-transform */
@@ -68,19 +68,23 @@ body {
   width: 5px;
   height: 0px;
 }
+
 /* 外层轨道 */
 ::-webkit-scrollbar-track {
   background: var(--theme_inner_bg_color);
 }
+
 /* 滚动条可以拖动的那部分 */
 ::-webkit-scrollbar-thumb {
   background: #787878;
   border-radius: 5px;
 }
+
 /* 点击滚动条的时候改变背景颜色 */
 ::-webkit-scrollbar-thumb:active {
   background: #5a5959;
 }
+
 /* 边角 */
 ::-webkit-scrollbar-corner {
   background: #787878;

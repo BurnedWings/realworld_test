@@ -31,6 +31,7 @@ export default {
     };
   },
   methods: {
+    //初始化cropper
     initCropper(image) {
       const cropper = new Cropper(image, {
         background: false,

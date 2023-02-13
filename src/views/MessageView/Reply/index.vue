@@ -63,7 +63,7 @@
 <script>
 import Vue from "vue";
 import store from "@/store/index";
-import MessageInput from "@/components/MessageInput";
+const MessageInput = () => import("@/components/MessageInput");
 export default {
   name: "Reply",
   components: {
@@ -77,13 +77,14 @@ export default {
     };
   },
   methods: {
+    //获取消息
     async getMessage() {
       const ret = await this.$API.message.getMessage();
       if (ret.code === 200) {
-        if(ret.replyArr){
-         this.messageList = ret.replyArr;
-        this.statusList = ret.statusArr;
-        return 
+        if (ret.replyArr) {
+          this.messageList = ret.replyArr;
+          this.statusList = ret.statusArr;
+          return;
         }
         this.messageList = ret.retArr;
         this.statusList = ret.statusArr;
@@ -137,8 +138,15 @@ export default {
         }
       }
     },
-    showComment(index, replyId, articleOrTrend, commentOrTrendComment, is,toReplyId) {
-      
+    //显示回复框
+    showComment(
+      index,
+      replyId,
+      articleOrTrend,
+      commentOrTrendComment,
+      is,
+      toReplyId
+    ) {
       const commentArea = document.querySelector(
         `.my-message-comment-container${index}`
       );
@@ -180,17 +188,18 @@ export default {
         }, 50);
       }
     },
-    async changeUnCheckedReply(){
-      const ret = await this.$API.message.changeUnCheckedReply()
-      if(ret.code===200){
+    //改变消息状态
+    async changeUnCheckedReply() {
+      const ret = await this.$API.message.changeUnCheckedReply();
+      if (ret.code === 200) {
         this.$store.dispatch("getTotalCount");
       }
     }
   },
   mounted() {
     this.getMessage();
-    if(this.$store.state.user.replyCount>0){
-      this.changeUnCheckedReply()
+    if (this.$store.state.user.replyCount > 0) {
+      this.changeUnCheckedReply();
     }
   }
 };

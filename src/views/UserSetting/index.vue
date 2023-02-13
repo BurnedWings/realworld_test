@@ -40,8 +40,8 @@
 </template>
 
 <script>
-import LeftPart from "./LeftPart";
-import EditPicture from "@/components/EditPicture";
+const LeftPart = () => import("./LeftPart");
+const EditPicture = () => import("@/components/EditPicture");
 // import "cropperjs/dist/cropper.css";
 // import Cropper from "cropperjs";
 export default {
